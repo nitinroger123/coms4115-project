@@ -1,7 +1,5 @@
 package interpreter.types;
-
 import helper.Arithmetic;
-
 /**
  *Class for the type Number 
  * @author nitin
