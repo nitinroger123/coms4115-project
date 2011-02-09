@@ -14,6 +14,9 @@ public class Number implements Type{
 		this.value=value;
 	}
 	
+	public Number(){
+		this.value=0;
+	}
 	public double add(Number N1,Number N2){
 		return N1.value+N2.value;
 	}
