@@ -41,11 +41,15 @@ public class Graph implements Type {
 	public void findLinearPath(){
 		Graph temp= this;
 		temp=temp.topologicalSort();
-		//TODO Iterate through the edges and store the nodes in linear order if one exists.
+		/** TODO
+		 Iterate through the edges and store the nodes in 
+		   linear order if one exists. Populate linerPath.
+		 */
 		
 	}
 	
 	public void print() throws GraphNotLinearException{
+		findLinearPath();
 		if(linearPath!=null){
 			for(Node n: linearPath){
 				System.out.println(n.getValue()+"-->");
