@@ -2,6 +2,7 @@ package interpreter.types;
 
 import java.util.ArrayList;
 
+import exceptions.GraphNotLinearException;
 import exceptions.NodesNotConnectedException;
 
 public class Graph implements Type {
@@ -15,7 +16,7 @@ public class Graph implements Type {
 	private double returnedSignature = -1;
 	
 	private Type[][] adjacencyMatrix;
-	
+	private ArrayList<Node> linearPath = null;
 	public Graph() {
 		nodes = new ArrayList<Node>();
 	}
@@ -32,6 +33,26 @@ public class Graph implements Type {
 	
 	public Node getNode(int id) {
 		return nodes.get(id);
+	}
+	
+	/**
+	 * Get the linear path of the graph. 
+	 */
+	public void findLinearPath(){
+		Graph temp= this;
+		temp=temp.topologicalSort();
+		//TODO Iterate through the edges and store the nodes in linear order if one exists.
+		
+	}
+	
+	public void print() throws GraphNotLinearException{
+		if(linearPath!=null){
+			for(Node n: linearPath){
+				System.out.println(n.getValue()+"-->");
+			}
+			return;
+		}
+		throw new GraphNotLinearException("The Graph is not linear");
 	}
 	
 	public void addEdge(int node1, int node2, Type value) {
@@ -92,16 +113,19 @@ public class Graph implements Type {
 	
 	/*
 	 * TODO: had some problems with the design, will re-visit
+	 * Nitin: Shouldn't top sort , dfs and BFS return a Graph?
 	 */
-	public void topologicalSort() {
+	public Graph topologicalSort() {
+		return this; // place holder
 		
 	}
 	
-	public void bfs() {
-		
+	public Graph bfs(Node start , Node goal) {
+		return this; // place holder
 	}
 	
-	public void dfs() {
+	public Graph dfs(Node start, Node goal) {
+		return this; // place holder
 		
 	}
 	
