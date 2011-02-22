@@ -1,6 +1,7 @@
 package interpreter.types;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import exceptions.GraphNotLinearException;
 import exceptions.NodesNotConnectedException;
@@ -125,6 +126,39 @@ public class Graph implements Type {
 	}
 	
 	public Graph bfs(Node start , Node goal) {
+		boolean pathFound = false;
+		ArrayList<Node> queue = new ArrayList<Node>();
+		HashMap<Node, Node> seen = new HashMap<Node, Node>();
+		seen.put(start,start);
+		queue.add(start);
+		start.setDistance(0);
+		start.setParent(null);
+		while(queue.size()>0){
+			if(pathFound) break;
+			Node front = queue.get(0);
+			for(Node adjacentNode : front.getAdjacent() ){
+				if(adjacentNode.equals(goal)){
+					adjacentNode.setDistance(front.getDistance());
+					adjacentNode.setParent(front);
+					seen.put(adjacentNode,adjacentNode);
+					pathFound=true;
+				}
+				if(seen.get(adjacentNode) == null){
+					adjacentNode.setDistance(front.getDistance());
+					adjacentNode.setParent(front);
+					seen.put(adjacentNode, adjacentNode);
+					queue.add(adjacentNode);
+				}
+			}
+			queue.remove(0);
+		}
+		ArrayList<Node> bfsOrder = new ArrayList<Node>();
+		Node current = goal;
+		while(current != null){
+			bfsOrder.add(current);
+			current = seen.get(current).getParent();
+		}
+		
 		return this; // place holder
 	}
 	
