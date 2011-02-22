@@ -1,11 +1,19 @@
 package interpreter.types;
 
+import helper.IDGenerator;
+
 import java.util.ArrayList;
 
 public class Node implements Type {
 	private Type value;
 	private ArrayList<Node> adjacentNodes;
+	private long distance; //distance from source node. Useful for BFS, shortest path etc.
+	private Node parent; //The parent Node in a bfs, dfs etc.
+	private Double id;
 	
+	public Node(){
+		this.id = IDGenerator.generateNodeId();
+	}
 	/**
 	 * Constructor to create a new node with a set value and set its adj nodes
 	 * @param value
@@ -14,6 +22,7 @@ public class Node implements Type {
 	public Node(Type value, ArrayList<Node> adjacentNodes){
 		this.value=value;
 		this.adjacentNodes=adjacentNodes;
+		this.id=IDGenerator.generateNodeId();
 	}
 	/**
 	 * returns the nodes adjacent to this particular node
@@ -38,5 +47,59 @@ public class Node implements Type {
 	public Type getValue() {
 		return value;
 	}
+	public void setDistance(long distance) {
+		this.distance = distance;
+	}
+	public long getDistance() {
+		return distance;
+	}
+	public void setParent(Node parent) {
+		this.parent = parent;
+	}
+	public Node getParent() {
+		return parent;
+	}
+	
+	public Double getID(){
+		return id;
+	}
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((adjacentNodes == null) ? 0 : adjacentNodes.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		return result;
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Node other = (Node) obj;
+		if (adjacentNodes == null) {
+			if (other.adjacentNodes != null)
+				return false;
+		} else if (!adjacentNodes.equals(other.adjacentNodes))
+			return false;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (value == null) {
+			if (other.value != null)
+				return false;
+		} else if (!value.equals(other.value))
+			return false;
+		return true;
+	}
+	
+	
 	
 }
