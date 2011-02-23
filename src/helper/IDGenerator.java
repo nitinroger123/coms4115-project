@@ -3,7 +3,7 @@ package helper;
 import java.util.HashMap;
 
 public class IDGenerator {
-	HashMap<Double,Double> nodeIDHash = new HashMap<Double, Double>();
+	private static HashMap<Double,Double> nodeIDHash = new HashMap<Double, Double>();
 	
 	public static Double generateNodeId(){
 		Double id = Math.random();
