@@ -12,7 +12,7 @@ public class Graph implements Type {
 	
 	private ArrayList<Node> nodes;
 	private ArrayList<EdgeWrapper> edges;
-	
+	private int numberOfNodes;
 	private double updatedSignature = 0;
 	private double returnedSignature = -1;
 	
@@ -20,11 +20,16 @@ public class Graph implements Type {
 	private ArrayList<Node> linearPath = null;
 	public Graph() {
 		nodes = new ArrayList<Node>();
+		this.numberOfNodes = 0;
 	}
 	
+	public int getNumberOfNodes(){
+		return numberOfNodes;
+	}
 	public void addNode(Node value) {
 		nodes.add(value);
 		updatedSignature = Math.random();
+		this.numberOfNodes ++;
 	}
 	
 	public void removeNode(int id) {
