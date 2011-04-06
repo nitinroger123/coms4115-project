@@ -1,16 +1,18 @@
 package helper;
 
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class IDGenerator {
-	private static HashMap<Double,Double> nodeIDHash = new HashMap<Double, Double>();
-	
-	public static Double generateNodeId(){
-		Double id = Math.random();
-		while(nodeIDHash.get(id) != null ){
-			id= Math.random();
-		}
-		return id;
-	}
+    private static Set<Double> nodeIDSet = new HashSet<Double>();
+
+    public static Double generateNodeId(){
+        Double id = Math.random();
+        while(nodeIDSet.contains(id)){
+            id= Math.random();
+            nodeIDSet.add(id);
+        }
+        return id;
+    }
 
 }
