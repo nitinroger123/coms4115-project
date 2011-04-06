@@ -10,8 +10,8 @@ public class IDGenerator {
         Double id = Math.random();
         while(nodeIDSet.contains(id)){
             id= Math.random();
-            nodeIDSet.add(id);
         }
+        nodeIDSet.add(id);
         return id;
     }
 
