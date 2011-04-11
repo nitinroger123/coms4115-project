@@ -6,6 +6,12 @@ import java.util.HashMap;
 import exceptions.GraphNotLinearException;
 import exceptions.NodesNotConnectedException;
 
+/**
+ * The Graph class does triple-duty.
+ * 1) It represents Graphs as a list of nodes each with lists of adjacent nodes, 
+ * 2) It represents Graphs as adjacency matrices
+ * 3) with the linearPath field, it can represent a simple list that can also work as a double-ended queue
+ */
 public class Graph implements Type {
 	
 	//TODO: figure out if need to make indices of nodes static (since mutating array list changes indices)
@@ -23,6 +29,8 @@ public class Graph implements Type {
 		this.numberOfNodes = 0;
 	}
 	
+	
+	
 	public int getNumberOfNodes(){
 		return numberOfNodes;
 	}
@@ -30,6 +38,16 @@ public class Graph implements Type {
 		nodes.add(value);
 		updatedSignature = Math.random();
 		this.numberOfNodes ++;
+	}
+	
+	
+	
+	/*
+	 * Removes a node as an element of the list
+	 */
+	public void listRemove(Node n){
+		nodes.remove(n);
+		linearPath.remove(n);
 	}
 	
 	public void removeNode(int id) {
@@ -196,10 +214,60 @@ public class Graph implements Type {
 	}
 	
 	/**
-	 * TODO
+	 * Simply creates "linearPath" in the order that the nodes exist in the nodes list
 	 */
 	public Graph linearize(){
+		linearPath = new ArrayList<Node>();
+		for(Node n: nodes){
+			linearPath.add(n);
+		}
 		return this;
+	}
+	
+	/**
+	 * List Constructor
+	 */
+	public Graph(ArrayList<Type> listElements){
+		nodes = new ArrayList<Node>();
+		for(Type elem: listElements){
+			listAddEnd(elem);
+		}
+	}
+	
+	/**
+	 * Adds a node as an element at the front of the list. 
+	 */
+	public void listAddFront(Type value){
+		Node listElem = new Node(value);
+		nodes.add(0,listElem);
+		linearPath.add(0,listElem);
+	}
+	
+	/**
+	 * Adds a node as an element of the list
+	 */
+	public void listAddEnd(Type value){
+		Node listElem = new Node(value);
+		nodes.add(listElem);
+		linearPath.add(listElem);
+	}
+	
+	/**
+	 * Removes first node as element of list
+	 */
+	public Type listRemoveFront(){
+		nodes.remove(nodes.size() -1);
+		Node n = linearPath.remove(nodes.size() -1);
+		return n.getValue();
+	}
+	
+	/**
+	 * Removes last node as element of list
+	 */
+	public Type listRemoveEnd(){
+		nodes.remove(0);
+		Node n = linearPath.remove(0);
+		return n.getValue();
 	}
 	
 }
