@@ -3,17 +3,28 @@ package interpreter.types;
 import helper.IDGenerator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Node implements Type {
 	private Type value;
-	private ArrayList<Node> adjacentNodes;
+	private ArrayList<Node> adjacentNodes = new ArrayList<Node>();
 	private long distance; //distance from source node. Useful for BFS, shortest path etc.
 	private Node parent; //The parent Node in a bfs, dfs etc.
 	private Double id;
+	private HashMap<String, Type> tags = new HashMap<String, Type>();
 	
 	public Node(){
 		this.id = IDGenerator.generateNodeId();
 	}
+	
+	/*
+	 * Constructor for a node with only a value
+	 */
+	public Node(Type value){
+		this.value = value;
+		this.id = IDGenerator.generateNodeId();
+	}
+	
 	/**
 	 * Constructor to create a new node with a set value and set its adj nodes
 	 * @param value
@@ -47,6 +58,15 @@ public class Node implements Type {
 	public Type getValue() {
 		return value;
 	}
+	
+	public void setTag(String name, Type tag){
+		tags.put(name, tag);
+	}
+	
+	public Type getTag(String name){
+		return tags.get(name);
+	}
+	
 	public void setDistance(long distance) {
 		this.distance = distance;
 	}
