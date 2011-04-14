@@ -147,7 +147,13 @@ public class Graph implements Type {
 		return this; // place holder
 		
 	}
-	
+	/**
+	 * Call the bfs with the copy of the start node and the copy of the goal Node.
+	 * Returns the resulting bfs graph. 
+	 * @param start
+	 * @param goal
+	 * @return
+	 */
 	public Graph bfs(Node start , Node goal) {
 		boolean pathFound = false;
 		ArrayList<Node> queue = new ArrayList<Node>();
@@ -159,7 +165,8 @@ public class Graph implements Type {
 		while(queue.size()>0){
 			if(pathFound) break;
 			Node front = queue.get(0);
-			for(Node adjacentNode : front.getAdjacent() ){
+			ArrayList<Node> adjacent = new ArrayList<Node>(front.getAdjacent());
+			for(Node adjacentNode : adjacent ){
 				if(adjacentNode.equals(goal)){
 					adjacentNode.setDistance(front.getDistance());
 					adjacentNode.setParent(front);
@@ -181,7 +188,10 @@ public class Graph implements Type {
 			bfsOrder.add(current);
 			current = seen.get(current).getParent();
 		}
-		
+		for(int i=bfsOrder.size() - 1 ; i>=0 ; i--){
+			System.out.println(bfsOrder.get(i).getID());
+			
+		}
 		return this; // place holder
 	}
 	
@@ -209,7 +219,7 @@ public class Graph implements Type {
 	 * TODO
 	 */
 	public boolean hasCycles(){
-		// place holdeR
+		// place holder
 		return true;
 	}
 	
