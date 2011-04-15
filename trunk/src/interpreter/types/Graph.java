@@ -109,14 +109,14 @@ public class Graph implements Type {
 		throw new NodesNotConnectedException("Nodes " + node1 + " and " + node2 + " are not connected!");
 	}
 	
-	public Type getEdge(int node1, int node2) throws NodesNotConnectedException {
+	/*public Type getEdge(Node node1, Node node2) throws NodesNotConnectedException {
 		for (EdgeWrapper e : edges) {
 			if (e.check(node1, node2)) return e.getValue();
 		}
 		
 		throw new NodesNotConnectedException("Nodes " + node1 + " and " + node2 + " are not connected!");
 	}
-	
+	*/
 	/*
 	 * Convert graph data into adjacency matrix, uses lazy evaluation
 	 * so don't worry about calling this method multiple times
@@ -130,7 +130,7 @@ public class Graph implements Type {
 		for (int i=0; i<nodes.size(); i++) {
 			for (int j=0; j<nodes.size(); j++) {
 				try {
-					adjacencyMatrix[i][j] = this.getEdge(i, j);
+					adjacencyMatrix[i][j] = this.getEdge(nodes.get(i), nodes.get(j));
 				} catch (NodesNotConnectedException e) {
 					adjacencyMatrix[i][j] = null;
 				}
@@ -266,6 +266,62 @@ public class Graph implements Type {
 	
 	
 	
+	/**
+	 * gets value
+	 */
+	public Type listGet(int i){
+		return nodes.get(i).getValue();
+	}
+	
+	/**
+	 * sets value
+	 */
+	public void listSet(int i, Type v){
+		nodes.get(i).setValue(v);
+	}
+	
+	/**
+	 * gets tag value
+	 */
+	public Type listGet(int i, String tag){
+		return nodes.get(i).getTag(tag);
+	}
+	
+	/**
+	 * sets tag value
+	 */
+	public void listSet(int i, String tag, Type v){
+		nodes.get(i).setTag(tag, v);
+	}
+	
+	/**
+	 * Adds a tag of the same name to all nodes. Does not set value
+	 */
+	public void addUniTag(String name){
+		for(Node n: nodes){
+			n.setTag(name, null);
+		}
+	}
+	
+	/**
+	 * Adds a tag of the same name and type at given values for all nodes
+	 */
+	public void setUniTag(String name, ArrayList<Type> vals){
+		for(int i = 0; i < nodes.size(); i++){
+			nodes.get(i).setTag(name, vals.get(i));
+		}
+	}
+	
+	/**
+	 * Returns a tag of the given name for all nodes that have it
+	 */
+//	public ArrayList<Type> getUniTag(String name){
+//		ArrayList<Type> tagVals = new ArrayList<Type>();
+//		for(int i = 0; i < nodes.size(); i++){
+//			tagVals.add(nodes.get(i).getTag(name));
+//		}
+//		return tagVals;
+//	}
 }
 
 

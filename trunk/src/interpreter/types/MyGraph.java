@@ -17,9 +17,9 @@ public class MyGraph {
 	
 	public MyGraph(){
 		this.nodes = new ArrayList<Node>();
-		this. edges = new ArrayList<Edge>();
-		this. numberOfNodes = 0;
-		this. numberOfEdges = 0;
+		this.edges = new ArrayList<Edge>();
+		this.numberOfNodes = 0;
+		this.numberOfEdges = 0;
 	}
 	
 	public void addNode(Node n){
@@ -139,4 +139,128 @@ public class MyGraph {
 		return output;
 	}
 	
+	/**
+	 * TODO
+	 * @return
+	 */
+	public MyGraph minimumSpanningTree(){
+		//place holder
+		return this;
+	}
+	/**
+	 * TODO
+	 * @param start
+	 * @param goal
+	 * @return
+	 */
+	public MyGraph dfs(Node start, Node goal) {
+		return this; // place holder
+		
+	}
+	
+	/**
+	 * TODO
+	 */
+	public boolean hasCycles(){
+		// place holder
+		return true;
+	}
+	
+	/**
+	 * Simply creates "linearPath" in the order that the nodes exist in the nodes list
+	 */
+//	public MyGraph linearize(){
+//		linearPath = new ArrayList<Node>();
+//		for(Node n: nodes){
+//			linearPath.add(n);
+//		}
+//		return this;
+//	}
+	
+	/**
+	 * List Constructor
+	 */
+	public MyGraph(ArrayList<Type> listElements){
+		nodes = new ArrayList<Node>();
+		for(Type elem: listElements){
+			listAddEnd(elem);
+		}
+	}
+	
+	/**
+	 * Adds a node as an element at the front of the list. 
+	 */
+	public void listAddFront(Type value){
+		Node listElem = new Node(value);
+		nodes.add(0,listElem);
+		//linearPath.add(0,listElem);
+	}
+	
+	/**
+	 * Adds a node as an element of the list
+	 */
+	public void listAddEnd(Type value){
+		Node listElem = new Node(value);
+		nodes.add(listElem);
+		//linearPath.add(listElem);
+	}
+	
+	
+	
+	/**
+	 * gets value
+	 */
+	public Type listGet(int i){
+		return nodes.get(i);
+	}
+	
+	/**
+	 * sets value
+	 */
+	public void listSet(int i, Type v){
+		nodes.get(i).setValue(v);
+	}
+	
+	/**
+	 * gets tag value
+	 */
+	public Type listGet(int i, String tag){
+		return nodes.get(i).getTag(tag);
+	}
+	
+	/**
+	 * sets tag value
+	 */
+	public void listSet(int i, String tag, Type v){
+		nodes.get(i).setTag(tag, v);
+	}
+	
+	/**
+	 * Adds a tag of the same name to all nodes. Does not set value
+	 */
+	public void addUniTag(String name){
+		for(Node n: nodes){
+			n.setTag(name, null);
+		}
+	}
+	
+	/**
+	 * Adds a tag of the same name and type at given values for all nodes
+	 */
+	public void setUniTag(String name, ArrayList<Type> vals){
+		for(int i = 0; i < nodes.size(); i++){
+			nodes.get(i).setTag(name, vals.get(i));
+		}
+	}
+	
+	/**
+	 * Returns a tag of the given name for all nodes that have it
+	 */
+//	public ArrayList<Type> getUniTag(String name){
+//		ArrayList<Type> tagVals = new ArrayList<Type>();
+//		for(int i = 0; i < nodes.size(); i++){
+//			tagVals.add(nodes.get(i).getTag(name));
+//		}
+//		return tagVals;
+//	}
 }
