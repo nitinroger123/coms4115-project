@@ -27,6 +27,10 @@ public class MyGraph {
 		this.numberOfNodes ++;
 	}
 	
+	public void addAllNodes(ArrayList<Node> nodes){
+		this.nodes.addAll(nodes);
+	}
+	
 	public void addEdge(Edge e){
 		edges.add(e);
 		e.getFirstNode().addAdjacentNode(e.getSecondNode());
@@ -112,6 +116,17 @@ public class MyGraph {
 			
 		}
 		return bfsGraph;
+	}
+	
+	/**
+	 * Prints nodes in index order
+	 */
+	public String printNodes(){
+		String output="";
+		for(Node node : nodes){
+			output+=(node.getValue()+" ");
+		}
+		return output;
 	}
 	
 	

@@ -5,13 +5,17 @@ import helper.IDGenerator;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Node implements Type {
+public class Node implements Type , Cloneable {
 	private Type value;
 	private ArrayList<Node> adjacentNodes = new ArrayList<Node>();
 	private long distance; //distance from source node. Useful for BFS, shortest path etc.
 	private Node parent; //The parent Node in a bfs, dfs etc.
 	private Double id;
 	private HashMap<String, Type> tags = new HashMap<String, Type>();
+	
+	public String getValue(){
+		return value.getValue();
+	}
 	
 	public Node(){
 		this.id = IDGenerator.generateNodeId();
@@ -54,10 +58,6 @@ public class Node implements Type {
 
 	public void setValue(Type value) {
 		this.value = value;
-	}
-
-	public Type getValue() {
-		return value;
 	}
 	
 	public void setTag(String name, Type tag){

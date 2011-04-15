@@ -6,14 +6,17 @@ import helper.Arithmetic;
  *
  */
 public class Number implements Type{
-	private double value;
+	private Double value;
 	
+	public String getValue(){
+		return value.toString();
+	}
 	public Number(double value){
 		this.value=value;
 	}
 	
 	public Number(){
-		this.value=0;
+		this.value=0.0;
 	}
 	public double add(Number N1,Number N2){
 		return N1.value+N2.value;

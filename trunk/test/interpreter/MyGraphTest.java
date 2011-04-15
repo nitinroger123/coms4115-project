@@ -6,9 +6,7 @@ import interpreter.types.Edge;
 import interpreter.types.MyGraph;
 import interpreter.types.Node;
 import interpreter.types.Number;
-
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -66,9 +64,26 @@ public class MyGraphTest {
 		testGraph.addEdge(e);
 		e = new Edge(n5, n4, new Number(1.0));
 		testGraph.addEdge(e);
-		System.out.println(testGraph.getNumberOfEdges());
-		System.out.println(testGraph.bfs(n1 , n4).getNumberOfEdges());
-		
+		testGraph.bfs(n1 , n4).printNodes();
+		assertEquals(3,testGraph.bfs(n1 , n4).getNumberOfEdges());
+		assertEquals(4,testGraph.bfs(n1).getNumberOfEdges());
 	}
+	
+	@Test
+	public void testPrintNodes(){
+		Node n1 = new Node(new Number(1.0));
+		Node n2 = new Node(new Number(2.0));
+		Node n3 = new Node(new Number(3.0));
+		Node n4 = new Node(new Number(4.0));
+		Node n5 = new Node(new Number(5.0));
+		testGraph.addNode(n1);
+		testGraph.addNode(n2);
+		testGraph.addNode(n3);
+		testGraph.addNode(n4);
+		testGraph.addNode(n5);
+		String expected = "1.0 2.0 3.0 4.0 5.0 ";
+		assertEquals(expected, testGraph.printNodes());
+	}
+	
 
 }
