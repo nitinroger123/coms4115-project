@@ -17,6 +17,10 @@ public class Node implements Type{
 		return value.getValue();
 	}
 	
+	public Type getContents(){
+		return value;
+	}
+	
 	public Node(){
 		this.id = IDGenerator.generateNodeId();
 	}
@@ -58,6 +62,7 @@ public class Node implements Type{
 
 	public void setValue(Type value) {
 		this.value = value;
+		tags.put("", value);
 	}
 	
 	public void setTag(String name, Type tag){
