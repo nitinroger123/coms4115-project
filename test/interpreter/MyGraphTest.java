@@ -75,6 +75,8 @@ public class MyGraphTest {
 		Node n3 = new Node(new Number(3.0));
 		Node n4 = new Node(new Number(4.0));
 		Node n5 = new Node(new Number(5.0));
+		Node n6 = n5.clone();
+		System.out.println(n6.equals(n5));
 		testGraph.addNode(n1);
 		testGraph.addNode(n2);
 		testGraph.addNode(n3);

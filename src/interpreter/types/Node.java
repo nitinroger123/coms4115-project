@@ -5,7 +5,7 @@ import helper.IDGenerator;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Node implements Type , Cloneable {
+public class Node implements Type{
 	private Type value;
 	private ArrayList<Node> adjacentNodes = new ArrayList<Node>();
 	private long distance; //distance from source node. Useful for BFS, shortest path etc.
@@ -83,6 +83,13 @@ public class Node implements Type , Cloneable {
 	
 	public Double getID(){
 		return id;
+	}
+	
+	public Node clone(){
+		Node clone = new Node();
+		clone.adjacentNodes = new ArrayList<Node>(this.getAdjacent());
+		clone.value = this.value;
+		return clone;
 	}
 	
 	
