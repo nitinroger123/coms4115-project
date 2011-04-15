@@ -30,7 +30,9 @@ public class Graph implements Type {
 	}
 	
 	
-	
+	public String getValue(){
+		return this.toString();
+	}
 	public int getNumberOfNodes(){
 		return numberOfNodes;
 	}
@@ -262,23 +264,7 @@ public class Graph implements Type {
 		linearPath.add(listElem);
 	}
 	
-	/**
-	 * Removes first node as element of list
-	 */
-	public Type listRemoveFront(){
-		nodes.remove(nodes.size() -1);
-		Node n = linearPath.remove(nodes.size() -1);
-		return n.getValue();
-	}
 	
-	/**
-	 * Removes last node as element of list
-	 */
-	public Type listRemoveEnd(){
-		nodes.remove(0);
-		Node n = linearPath.remove(0);
-		return n.getValue();
-	}
 	
 }
 

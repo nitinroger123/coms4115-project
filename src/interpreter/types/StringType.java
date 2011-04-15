@@ -9,6 +9,10 @@ public class StringType implements Type{
 
     private String value;
     
+    public String getValue(){
+    	return value;
+    }
+    
     public StringType(String value) {
         this.value = new String(value);
     }
