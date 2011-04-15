@@ -38,6 +38,16 @@ public class MyGraph {
 		this.numberOfEdges ++;
 	}
 	
+	/**
+	 * adds a directed edge from node1 to node2
+	 * @param e
+	 */
+	public void addDirectedEdge(Edge e){
+		edges.add(e);
+		e.getFirstNode().addAdjacentNode(e.getSecondNode());
+		this.numberOfEdges ++;
+	}
+	
 	public int getNumberOfNodes(){
 		return numberOfNodes;
 	}
@@ -128,6 +138,5 @@ public class MyGraph {
 		}
 		return output;
 	}
-	
 	
 }
