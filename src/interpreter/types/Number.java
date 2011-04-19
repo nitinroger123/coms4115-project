@@ -20,32 +20,32 @@ public class Number implements Type{
 	public Number(){
 		this.value=0;
 	}
-	public static double add(Number N1,Number N2){
-		return N1.value+N2.value;
+	public static Number add(Number N1,Number N2){
+		return new Number(N1.value+N2.value);
 	}
 	
-	public static double subtract(Number N1,Number N2){
-		return N1.value-N2.value;
+	public static Number subtract(Number N1,Number N2){
+		return new Number (N1.value-N2.value);
 	}
 	
-	public static double multiply(Number N1,Number N2){
-		return N1.value*N2.value;
+	public static Number multiply(Number N1,Number N2){
+		return new Number (N1.value*N2.value);
 	}
 	
-	public static double divide(Number N1,Number N2){
-		return N1.value/N2.value;
+	public static Number divide(Number N1,Number N2){
+		return new Number(N1.value/N2.value);
 	}
 	
-	public static double factorial(Number N1){
-		return Arithmetic.factorial(N1.value);
+	public static Number factorial(Number N1){
+		return new Number(Arithmetic.factorial(N1.value));
 	}
 	
-	public static double modulo(Number N1,Number N2){
-		return N1.value%N2.value;
+	public static Number modulo(Number N1,Number N2){
+		return new Number(N1.value%N2.value);
 	}
 	
-	public static double pow(Number N1,Number N2){
-		return Math.pow(N1.value, N2.value);
+	public static Number pow(Number N1,Number N2){
+		return new Number(Math.pow(N1.value, N2.value));
 	}
 
 }
