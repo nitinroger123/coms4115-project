@@ -49,7 +49,7 @@ public class Matrix {
 		for(int i = 0; i < mat.getHeight(); i++){
 			Number temp = new Number(0); // will be ith value of new vec 
 			for(int j = 0; j < mat.getWidth(); j++){
-				temp = new Number(Number.add(temp, new Number(Number.multiply(mat.get(i,j), vec.get(j)))));
+				temp = Number.add(temp, Number.multiply(mat.get(i,j), vec.get(j)));
 			}
 		}
 		return new Vector(newVals);
