@@ -172,7 +172,13 @@ public class MyGraph {
             graphList.add(node1);
             for(Node node2: node1.getAdjacent()) {
                 tempEdgesSet.remove(getEdge(node1, node2));
-                if(hasIncomingEdges(node2)) {
+                boolean hasIncoming = false;
+                for(Edge edge: tempEdgesSet) {
+                    if(edge.getSecondNode().equals(node2)) {
+                        hasIncoming = true;
+                    }
+                }
+                if(!hasIncoming) {
                     graphList.add(node2);
                 }
             }
@@ -186,14 +192,6 @@ public class MyGraph {
         return graph; // place holder
     }
 
-    private boolean hasIncomingEdges(Node n) {
-        for(Node node: nodes) {
-            if(node.getAdjacent().contains(n))
-                return true;
-        }
-        return false;
-    }
-    
     private Edge getEdge(Node fromNode, Node toNode) {
         for(Edge e: edges) {
             if(e.getFirstNode().equals(fromNode) && e.getSecondNode().equals(toNode))
