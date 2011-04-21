@@ -1,0 +1,302 @@
+//GPL grammar
+
+%{
+  import java.util.HashMap;
+  import java.util.Stack;
+
+  class SemanticWrapper {
+    public Object val;
+    public HashMap<String, Object> map; 
+    public SemanticWrapper(Object val) {
+        this.val = val;
+    }
+  }
+
+  class GPLLexer implements GPLTokens {
+	private int lastChar = 32;
+    private int token;
+    private SemanticWrapper yylval;
+    private boolean inLiteral = false;
+    private boolean inComment = false;
+    private String s;
+  
+    /** Read a single input character from standard input.
+     */
+    private int nextChar() {
+        try {
+          int c = System.in.read();
+		  return c;
+        } catch (Exception e) {
+          return -1;
+        }
+    }
+
+    /** Read the next token and return the
+     *  corresponding integer code.
+     */
+    int nextToken() {
+	    int c = lastChar;
+        s="";
+        
+        lastChar = 32;
+        
+        if (inComment) {
+            while (c!='\n') {
+                c = nextChar();
+            }
+            inComment = false;
+            lastChar = '\n';
+            nextToken();
+        }
+        
+        if (inLiteral) {
+            while (c!='"') {
+                s += Character.toString((char)c);
+                c = nextChar();
+            }
+            inLiteral = false;
+            yylval = new SemanticWrapper(s.substring(1,s.length()));
+            return token=STRING_LITERAL;
+        }
+        
+		while (c==32 || c==11 || c==13) {
+			c=nextChar();
+		}
+        
+            
+		if (c<0) return (token=ENDINPUT);
+		
+        String newline = "\n";
+        
+        if (c == newline.charAt(0)) {
+            return token=NL;
+        }
+        
+		//Take care of all the special one-character tokens
+		switch (c) {
+          case '+' : 
+                     return token='+';
+          case '-' : 
+                     return token='-';
+          case '*' : 
+                     return token='*';
+          case '/' : 
+                     return token='/';
+          case '%' : 
+                     return token='%';
+          case '^' : 
+                     return token='^';
+		  case '(' : 
+                     return token='(';
+          case ')' : 
+                     return token=')';
+		  case '=' : 
+                     return token='=';
+          case '>' : 
+                     return token='>';
+		  case '<' : 
+                     return token='<';
+          case ',' : 
+                     return token=',';
+		  case '.' : 
+                     return token='.';
+		  case '!' : 
+                     return token='!';
+		  case '&' : 
+                     return token='&';
+          case '|' : 
+                     return token='|';
+          case '"' :
+                     {inLiteral = true; return nextToken();}
+          case '#' :
+                     {inComment = true; return nextToken();}
+		}
+        
+		while ((c>=65 && c<=90) || (c>=97 && c<=122) || (c>=48 && c<=57) || (c==34) || (s.matches("[0-9]+") && c=='.')) {
+			if (c<0) break;
+			s+=Character.toString((char)c);
+			c=nextChar();
+		}
+        
+        lastChar = c;
+        
+		if (s.matches("([+-]?[0-9]*\\.[0-9]+)|([+-]?[0-9]+)")) {
+            yylval = new SemanticWrapper(Double.parseDouble(s));
+			return token=NUMBER;
+		} else if (s.equals("Number")||s.equals("Graph")||s.equals("String")||s.equals("Function")) {
+            yylval = new SemanticWrapper(s);
+			return token=TYPE;
+		} else if (s.equals("print")) {
+			return token=PRINT;
+		} else if (s.equals("include")) {
+			return token=INCLUDE;
+		} else if (s.equals("def")) {
+			return token=DEF;
+		} else if (s.equals("if")) {
+			return token=IF;
+		} else if (s.equals("else")) {
+			return token=ELSE;
+		} else if (s.equals("elsif")) {
+			return token=ELSIF;
+		} else if (s.equals("while")) {
+			return token=WHILE;
+		} else if (s.equals("next")) {
+			return token=NEXT;
+		} else if (s.equals("last")) {
+			return token=LAST;
+		} else if (s.equals("end")) {
+			return token=END;
+		} else if (s.equals("exit")) {
+			return token=EXIT;
+		} else if (s.equals("return")) {
+			return token=RETURN;
+		} else if (s.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
+            yylval = new SemanticWrapper(s);
+			return token=ID;
+        }
+		
+		return -1;
+    }
+
+    /** Return the token code for the current lexeme.
+     */
+    int getToken() {
+      return token;
+    }
+	
+	SemanticWrapper getSemantic() {
+		return yylval;
+	}
+  }
+
+  class Main {
+    public static void main(String[] args) {
+      GPLLexer  lexer  = new GPLLexer();
+      lexer.nextToken();
+      GPLParser parser = new GPLParser(lexer);
+      parser.parse();
+    }
+
+    static void error(String msg) {
+      System.out.println("ERROR: " + msg);
+      System.exit(1);
+    }
+  }
+%}
+
+%semantic SemanticWrapper
+%token PRINT INCLUDE DEF IF ELSE ELSIF WHILE NEXT LAST END EXIT RETURN ENDPOINT
+%token NL
+%token TYPE ID STRING_LITERAL NUMBER
+%token '+' '-' '*' '/' '(' ')' '^' ',' '.' '!' '|' '&'
+%left  '+' '-' '|'
+%left  '*' '/' '%' '&'
+%right '^'
+
+%% 
+
+start 	: start NL block
+        | block
+		;
+
+block   : action
+        | defun
+        | /* empty */
+        ;
+
+defun 	: DEF ID '(' defargswrapper ')' NL action NL END
+		;
+action 	: IF '(' boolexp ')' NL action NL elsec END
+		| WHILE '(' boolexp ')' NL action NL END
+		| INCLUDE '(' expr ')'
+		| PRINT '(' expr ')'            {System.out.println($3.val);}
+		| NEXT
+		| LAST
+		| RETURN expr
+		| RETURN
+		| EXIT							{System.exit(0);}
+		| declaration
+		| assignment
+		| expr
+		;
+elsec	: ELSE action NL
+		| ELSIF '(' boolexp ')' NL action NL elsec
+		| /* empty */
+		;
+		
+boolexp	: expr cpop expr
+		| symbol '&' '&' boolexp
+		| symbol '|' '|' boolexp
+		| '!' boolexp				
+		| '[' boolexp ']'
+		| symbol 
+		;
+cpop 	: '=' '='
+		| '!' '=' 
+		| '<'
+		| '<' '='
+		| '>'
+		| '>' '='
+		;
+defargs : TYPE ID ',' defargs
+		| TYPE ID
+		;
+defargswrapper 	: defargs
+				| /* empty */
+				;
+args 	: expr ',' args
+		| expr
+		;
+argswrapper 	: args
+				| /* empty */
+				;
+declaration : TYPE ID '=' expr              {declare((String)$1.val,(String)$2.val,$4.val);}
+			| TYPE ID                       {declare((String)$1.val,(String)$2.val,null);}
+			;
+assignment	: ID '=' expr                   {modify((String)$1.val, $3.val);}
+			;
+
+/* get rid of the char strings */
+expr		: ID '.' ID '(' argswrapper ')'
+			| ID '(' argswrapper ')'
+			| valexpr                       {$$.val = $1.val;}
+			;
+/* TODO: unary negation operator */
+valexpr 	: valexpr '+' valexpr            {$$ = new SemanticWrapper((Double)($1.val)+(Double)($3.val));}
+			| valexpr '-' valexpr            {$$ = new SemanticWrapper((Double)($1.val)-(Double)($3.val));}
+			| valexpr '*' valexpr            {$$ = new SemanticWrapper((Double)($1.val)*(Double)($3.val));}
+			| valexpr '/' valexpr            {$$ = new SemanticWrapper((Double)($1.val)/(Double)($3.val));}
+			| valexpr '^' valexpr            {$$ = new SemanticWrapper(Math.pow((Double)($1.val),(Double)($3.val)));}
+            | valexpr '%' valexpr            {$$ = new SemanticWrapper((Double)($1.val)%(Double)($3.val));}
+			| '(' valexpr ')'               {$$ = new SemanticWrapper($2.val);}
+			| symbol				           {$$ = new SemanticWrapper($1.val);}
+			;
+symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val));}
+			| NUMBER 				{$$ = new SemanticWrapper($1.val);}
+			| STRING_LITERAL
+			;
+
+%%
+  private GPLLexer lexer;
+  
+  private HashMap<String, Object> symbolTable = new HashMap<String, Object>();
+
+  public GPLParser(GPLLexer lexer) { this.lexer = lexer; }
+
+  private void yyerror(String msg) {
+    Main.error(yyerrno<0 ? msg : yyerrmsgs[yyerrno]);
+  }
+  
+  private Object lookup(String name) {
+    return symbolTable.get(name);
+  }
+  
+  private void modify(String name, Object val) {
+    symbolTable.put(name, val);
+  }
+  
+  private void declare(String type, String name, Object val) {
+    if (type.equals("Number")) {
+        symbolTable.put(name, (Double)val);
+    }
+  }

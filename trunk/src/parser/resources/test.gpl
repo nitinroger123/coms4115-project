@@ -1,0 +1,25 @@
+def sayHello()
+    print(123)
+end
+
+Number pi = 3.1415926
+Number radius =  5
+
+# this line should do nothing!
+print((123+12)*20) #this shows how in-line comment works
+print(2^3^4)
+print(3.5%1.2)
+print("hello world!")
+
+
+# let's calculate the area of a circle!
+print ("Area of the circle is")
+print(pi*radius^2)
+
+print("")
+print("Now let's make radius 10 instead")
+radius = 10
+print(pi*radius^2)
+
+# this is optional as program would exit here anyways
+exit
