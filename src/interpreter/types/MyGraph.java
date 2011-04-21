@@ -316,5 +316,42 @@ public class MyGraph {
     //		}
     //		return tagVals;
     //	
+    
+    /**
+	 * Adds a tag of the same name and type at the given (vector) values for all nodes
+	 */
+	public void setUniTag(String name, Vector vec){
+		for(int i = 0; i < nodes.size(); i++){
+			nodes.get(i).setTag(name, vec.get(i));
+		}
+	}
 	
+	/**
+	 * Returns a vector the PageRank each nodes
+	 */
+//	public Vector getPageRank(){
+//		int n = getNumberOfNodes();
+//		ArrayList<Number> degrees = new ArrayList<Number>();
+//		Matrix adjMat = new Matrix(this);
+//		for(int i = 0; i < n; i++){
+//			int sum = 0;
+//			for(int j = 0; j < n; j++){
+//				sum += adjMat.get(i,j).getDouble();
+//			}
+//			degrees.add(new Number(sum));
+//		}
+//		
+//		ArrayList<Number> temp = new ArrayList<Number>();
+//		for(int i = 0; i < n; i++){
+//			temp.add(new Number(1/n));
+//		}
+//		Vector prOld = new Vector(temp);
+//		Vector prNew = new Vector(prOld);
+//		
+//		Matrix googleMatrix = new Matrix(adjMat);
+//		
+//		
+//		return prNew;
+//	}
+//	
 }
