@@ -218,6 +218,10 @@ public class MyGraph {
         // place holder
         return true;
     }
+    
+    public Node getNode(int i){
+    	return nodes.get(i);
+    }
 
     /**
      * Simply creates "linearPath" in the order that the nodes exist in the nodes list
@@ -329,29 +333,29 @@ public class MyGraph {
 	/**
 	 * Returns a vector the PageRank each nodes
 	 */
-//	public Vector getPageRank(){
-//		int n = getNumberOfNodes();
-//		ArrayList<Number> degrees = new ArrayList<Number>();
-//		Matrix adjMat = new Matrix(this);
-//		for(int i = 0; i < n; i++){
-//			int sum = 0;
-//			for(int j = 0; j < n; j++){
-//				sum += adjMat.get(i,j).getDouble();
-//			}
-//			degrees.add(new Number(sum));
-//		}
-//		
-//		ArrayList<Number> temp = new ArrayList<Number>();
-//		for(int i = 0; i < n; i++){
-//			temp.add(new Number(1/n));
-//		}
-//		Vector prOld = new Vector(temp);
-//		Vector prNew = new Vector(prOld);
-//		
-//		Matrix googleMatrix = new Matrix(adjMat);
-//		
-//		
-//		return prNew;
-//	}
-//	
+	public Vector getPageRank(){
+		int n = getNumberOfNodes();
+		ArrayList<Number> degrees = new ArrayList<Number>();
+		Matrix adjMat = new Matrix(this);
+		for(int i = 0; i < n; i++){
+			int sum = 0;
+			for(int j = 0; j < n; j++){
+				sum += adjMat.get(i,j).getDouble();
+			}
+			degrees.add(new Number(sum));
+		}
+		
+		ArrayList<Number> temp = new ArrayList<Number>();
+		for(int i = 0; i < n; i++){
+			temp.add(new Number(1/n));
+		}
+		Vector prOld = new Vector(temp);
+		Vector prNew = new Vector(prOld);
+		
+		Matrix googleMatrix = new Matrix(adjMat);
+		
+		
+		return prNew;
+	}
+	
 }
