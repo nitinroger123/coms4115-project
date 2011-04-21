@@ -184,6 +184,7 @@
   }
 %}
 
+%package parser
 %semantic SemanticWrapper
 %token PRINT INCLUDE DEF IF ELSE ELSIF WHILE NEXT LAST END EXIT RETURN ENDPOINT
 %token NL
