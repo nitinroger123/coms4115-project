@@ -1,4 +1,4 @@
-package interpreter.types;
+/*package interpreter.types;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,12 +6,12 @@ import java.util.HashMap;
 import exceptions.GraphNotLinearException;
 import exceptions.NodesNotConnectedException;
 
-/**
+*//**
  * The Graph class does triple-duty.
  * 1) It represents Graphs as a list of nodes each with lists of adjacent nodes, 
  * 2) It represents Graphs as adjacency matrices
  * 3) with the linearPath field, it can represent a simple list that can also work as a double-ended queue
- */
+ *//*
 public class Graph implements Type {
 	
 	//TODO: figure out if need to make indices of nodes static (since mutating array list changes indices)
@@ -44,9 +44,9 @@ public class Graph implements Type {
 	
 	
 	
-	/*
+	
 	 * Removes a node as an element of the list
-	 */
+	 
 	public void listRemove(Node n){
 		nodes.remove(n);
 		linearPath.remove(n);
@@ -61,16 +61,16 @@ public class Graph implements Type {
 		return nodes.get(id);
 	}
 	
-	/**
+	*//**
 	 * Get the linear path of the graph. 
-	 */
+	 *//*
 	public void findLinearPath(){
 		Graph temp= this;
 		temp=temp.topologicalSort();
-		/** TODO
+		*//** TODO
 		 Iterate through the edges and store the nodes in 
 		   linear order if one exists. Populate linerPath.
-		 */
+		 *//*
 		
 	}
 	
@@ -109,19 +109,19 @@ public class Graph implements Type {
 		throw new NodesNotConnectedException("Nodes " + node1 + " and " + node2 + " are not connected!");
 	}
 	
-	/*public Type getEdge(Node node1, Node node2) throws NodesNotConnectedException {
+	public Type getEdge(Node node1, Node node2) throws NodesNotConnectedException {
 		for (EdgeWrapper e : edges) {
 			if (e.check(node1, node2)) return e.getValue();
 		}
 		
 		throw new NodesNotConnectedException("Nodes " + node1 + " and " + node2 + " are not connected!");
 	}
-	*/
-	/*
+	
+	
 	 * Convert graph data into adjacency matrix, uses lazy evaluation
 	 * so don't worry about calling this method multiple times
 	 * NOTE: null is placed where no edge exists
-	 */
+	 
 	public Type[][] getAdjacencyMatrix() {
 		
 		if (updatedSignature==returnedSignature) return adjacencyMatrix;
@@ -141,21 +141,21 @@ public class Graph implements Type {
 		return adjacencyMatrix;
 	}
 	
-	/*
+	
 	 * TODO: had some problems with the design, will re-visit
 	 * Nitin: Shouldn't top sort , dfs and BFS return a Graph?
-	 */
+	 
 	public Graph topologicalSort() {
 		return this; // place holder
 		
 	}
-	/**
+	*//**
 	 * Call the bfs with the copy of the start node and the copy of the goal Node.
 	 * Returns the resulting bfs graph. 
 	 * @param start
 	 * @param goal
 	 * @return
-	 */
+	 *//*
 	public Graph bfs(Node start , Node goal) {
 		boolean pathFound = false;
 		ArrayList<Node> queue = new ArrayList<Node>();
@@ -198,36 +198,36 @@ public class Graph implements Type {
 	}
 	
 
-	/**
+	*//**
 	 * TODO
 	 * @return
-	 */
+	 *//*
 	public Graph minimumSpanningTree(){
 		//place holder
 		return this;
 	}
-	/**
+	*//**
 	 * TODO
 	 * @param start
 	 * @param goal
 	 * @return
-	 */
+	 *//*
 	public Graph dfs(Node start, Node goal) {
 		return this; // place holder
 		
 	}
 	
-	/**
+	*//**
 	 * TODO
-	 */
+	 *//*
 	public boolean hasCycles(){
 		// place holder
 		return true;
 	}
 	
-	/**
+	*//**
 	 * Simply creates "linearPath" in the order that the nodes exist in the nodes list
-	 */
+	 *//*
 	public Graph linearize(){
 		linearPath = new ArrayList<Node>();
 		for(Node n: nodes){
@@ -236,9 +236,9 @@ public class Graph implements Type {
 		return this;
 	}
 	
-	/**
+	*//**
 	 * List Constructor
-	 */
+	 *//*
 	public Graph(ArrayList<Type> listElements){
 		nodes = new ArrayList<Node>();
 		for(Type elem: listElements){
@@ -246,18 +246,18 @@ public class Graph implements Type {
 		}
 	}
 	
-	/**
+	*//**
 	 * Adds a node as an element at the front of the list. 
-	 */
+	 *//*
 	public void listAddFront(Type value){
 		Node listElem = new Node(value);
 		nodes.add(0,listElem);
 		linearPath.add(0,listElem);
 	}
 	
-	/**
+	*//**
 	 * Adds a node as an element of the list
-	 */
+	 *//*
 	public void listAddEnd(Type value){
 		Node listElem = new Node(value);
 		nodes.add(listElem);
@@ -266,55 +266,55 @@ public class Graph implements Type {
 	
 	
 	
-	/**
+	*//**
 	 * gets value
-	 */
+	 *//*
 	public Type listGet(int i){
 		return nodes.get(i).getValue();
 	}
 	
-	/**
+	*//**
 	 * sets value
-	 */
+	 *//*
 	public void listSet(int i, Type v){
 		nodes.get(i).setValue(v);
 	}
 	
-	/**
+	*//**
 	 * gets tag value
-	 */
+	 *//*
 	public Type listGet(int i, String tag){
 		return nodes.get(i).getTag(tag);
 	}
 	
-	/**
+	*//**
 	 * sets tag value
-	 */
+	 *//*
 	public void listSet(int i, String tag, Type v){
 		nodes.get(i).setTag(tag, v);
 	}
 	
-	/**
+	*//**
 	 * Adds a tag of the same name to all nodes. Does not set value
-	 */
+	 *//*
 	public void addUniTag(String name){
 		for(Node n: nodes){
 			n.setTag(name, null);
 		}
 	}
 	
-	/**
+	*//**
 	 * Adds a tag of the same name and type at given values for all nodes
-	 */
+	 *//*
 	public void setUniTag(String name, ArrayList<Type> vals){
 		for(int i = 0; i < nodes.size(); i++){
 			nodes.get(i).setTag(name, vals.get(i));
 		}
 	}
 	
-	/**
+	*//**
 	 * Returns a tag of the given name for all nodes that have it
-	 */
+	 *//*
 //	public ArrayList<Type> getUniTag(String name){
 //		ArrayList<Type> tagVals = new ArrayList<Type>();
 //		for(int i = 0; i < nodes.size(); i++){
@@ -327,3 +327,4 @@ public class Graph implements Type {
 
 
 
+*/

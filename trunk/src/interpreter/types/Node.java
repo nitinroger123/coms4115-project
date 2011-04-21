@@ -24,15 +24,14 @@ public class Node implements Type{
 	public Node(){
 		this.id = IDGenerator.generateNodeId();
 	}
-	
+
 	/*
 	 * Constructor for a node with only a value
 	 */
 	public Node(Type value){
 		this.value = value;
 		this.id = IDGenerator.generateNodeId();
-	}
-	
+	}	
 
 	/**
 	 * Constructor to create a new node with a set value and set its adj nodes
@@ -60,11 +59,14 @@ public class Node implements Type{
 		this.adjacentNodes.addAll(otherAdjacentNodes);
 	}
 
+
+
 	public void setValue(Type value) {
 		this.value = value;
 		tags.put("", value);
 	}
 	
+
 	public void setTag(String name, Type tag){
 		tags.put(name, tag);
 	}
@@ -96,8 +98,5 @@ public class Node implements Type{
 		clone.value = this.value;
 		return clone;
 	}
-	
-	
-	
 	
 }

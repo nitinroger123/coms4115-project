@@ -8,7 +8,7 @@ public class Vector {
 	/**
 	 * Creates a Vector of numbers contained in the value or tag of a graph-list
 	 */
-	public Vector(Graph vec, String tag){
+	public Vector(MyGraph vec, String tag){
 		int n = vec.getNumberOfNodes();
 		vecVals = new ArrayList<Number>();
 		for(int i = 0; i < n; i++){
