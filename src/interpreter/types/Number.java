@@ -20,6 +20,15 @@ public class Number implements Type{
 	public Number(){
 		this.value=0;
 	}
+	
+	public Number(Number n){
+		this.value = n.value;
+	}
+	
+	public double getDouble(){
+		return value;
+	}
+	
 	public static Number add(Number N1,Number N2){
 		return new Number(N1.value+N2.value);
 	}

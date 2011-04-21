@@ -1,7 +1,7 @@
 package interpreter.types;
 import java.util.ArrayList;
 
-public class Matrix {
+public class Matrix implements Type{
 	private ArrayList<ArrayList<Number>> matVals;
 	
 	
@@ -30,6 +30,39 @@ public class Matrix {
 				matVals.get(i).add(vals.get(i).get(j));
 			}
 		}
+	}
+	
+	public Matrix(MyGraph mat){
+		matVals = new ArrayList<ArrayList<Number>>();
+		int n = mat.getNumberOfNodes();
+		for(int i = 0; i < n; i++){
+			ArrayList<Node> adjNodes = mat.getNode(i).getAdjacent();
+			int m = adjNodes.size();
+			matVals.add(new ArrayList<Number>());
+			for(int j = 0; j < m; j++){
+				if(adjNodes.contains(mat.getNode(j))){
+					matVals.get(i).add(new Number(1));
+				}else{
+					matVals.get(i).add(new Number(0));
+				}
+			}
+		}
+	}
+	
+	public Matrix(Matrix other){
+		matVals = new ArrayList<ArrayList<Number>>();
+		int n = other.getHeight();
+		int m = other.getWidth();
+		for(int i = 0; i < n; i++){
+			matVals.add(new ArrayList<Number>());
+			for(int j = 0; j < m; j++){
+				matVals.get(i).add(other.get(i,j));
+			}
+		}
+	}
+	
+	public String getValue(){
+		return "";
 	}
 	
 	public Number get(int i, int j){
