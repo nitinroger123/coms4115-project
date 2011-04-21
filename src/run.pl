@@ -3,7 +3,7 @@ my $opt = $ARGV[0];
 if ($opt eq "clean") {
     `rm parser/*.java`;
     `rm parser/*.class`;
-    print "All parser-related java files and class files have been removes\n";
+    print "All parser-related java files and class files have been removed\n";
     exit;
 }
 
