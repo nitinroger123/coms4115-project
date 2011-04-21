@@ -3,12 +3,15 @@
 %{
   import java.util.HashMap;
   import java.util.Stack;
+  import interpreter.types.*;
 
   class SemanticWrapper {
     public Object val;
     public HashMap<String, Object> map; 
-    public SemanticWrapper(Object val) {
+    public HashMap<String, Object> sTable;
+    public SemanticWrapper(Object val, HashMap<String, Object> sTable) {
         this.val = val;
+        this.sTable = sTable;
     }
   }
 
@@ -19,6 +22,12 @@
     private boolean inLiteral = false;
     private boolean inComment = false;
     private String s;
+    
+    private Stack<HashMap<String, Object>> scopes = new Stack<HashMap<String, Object>>();
+  
+    public GPLLexer() {
+        scopes.push(new HashMap<String, Object>());
+    }
   
     /** Read a single input character from standard input.
      */
@@ -131,20 +140,28 @@
 		} else if (s.equals("include")) {
 			return token=INCLUDE;
 		} else if (s.equals("def")) {
+            scopes.push(new HashMap<String, Object>());
 			return token=DEF;
 		} else if (s.equals("if")) {
+            scopes.push(new HashMap<String, Object>());
 			return token=IF;
 		} else if (s.equals("else")) {
+            scopes.pop();
+            scopes.push(new HashMap<String, Object>());
 			return token=ELSE;
 		} else if (s.equals("elsif")) {
+            scopes.pop();
+            scopes.push(new HashMap<String, Object>());
 			return token=ELSIF;
 		} else if (s.equals("while")) {
+            scopes.push(new HashMap<String, Object>());
 			return token=WHILE;
 		} else if (s.equals("next")) {
 			return token=NEXT;
 		} else if (s.equals("last")) {
 			return token=LAST;
 		} else if (s.equals("end")) {
+            scopes.pop();
 			return token=END;
 		} else if (s.equals("exit")) {
 			return token=EXIT;
