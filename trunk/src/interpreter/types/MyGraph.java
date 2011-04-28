@@ -2,12 +2,14 @@ package interpreter.types;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Stack;
 
 /**
  * new graph class 
@@ -43,6 +45,12 @@ public class MyGraph {
         this.numberOfEdges ++;
     }
 
+    public void addAllEdges(List<Edge> edges){
+        for(Edge e: edges) {
+            addEdge(e);
+        }
+    }
+    
     /**
      * adds a directed edge from node1 to node2
      * @param e
@@ -201,14 +209,36 @@ public class MyGraph {
     }
     
     /**
-     * TODO
+     * TODO Implemented a naive DFS, anyone who wants to work on it, create and return the dfs graph.
      * @param start
      * @param goal
      * @return
      */
     public MyGraph dfs(Node start, Node goal) {
+        Set<Node> visitedNodeSet = new HashSet<Node>();
+        Stack<Node> stack = new Stack<Node>();
+        List<Node> list = new LinkedList<Node>();
+        MyGraph graph = new MyGraph();
+        visitedNodeSet.add(start);
+        list.add(start);
+        stack.addAll(start.getAdjacent());
+        Node temp; 
+        while(!stack.isEmpty()) {
+            temp = stack.pop();
+            // We have reached our destination.
+            if(temp.equals(goal)) {
+                list.add(temp);
+                break;
+            }
+            else if(visitedNodeSet.contains(temp)) {
+                continue;
+            }
+            visitedNodeSet.add(temp);
+            list.add(temp);
+            stack.addAll(temp.getAdjacent());
+        }
+        System.out.println(list);
         return this; // place holder
-
     }
 
     /**
