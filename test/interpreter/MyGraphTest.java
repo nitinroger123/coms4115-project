@@ -108,5 +108,12 @@ public class MyGraphTest {
         assertEquals(expected, testGraph.printNodes());
     }
 
+    @Test
+    public void testDfs() {
+        MyGraph graph = getTestGraph();
+        Node start = graph.getNode(0);
+        Node end = graph.getNode(3);
+        graph.dfs(start, end);
+    }
 
 }
