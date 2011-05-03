@@ -18,17 +18,17 @@ public class Main {
         testGraph.addNode(n3);
         testGraph.addNode(n4);
         testGraph.addNode(n5);
-        Edge e = new Edge(n1, n2, new Number(1.0));
+        Edge e = new Edge(n1, n2, 10.0);
         testGraph.addEdge(e);
-        e = new Edge(n1, n5, new Number(1.0));
+        e = new Edge(n1, n5, 2.0);
         testGraph.addEdge(e);
-        e = new Edge(n2, n4, new Number(1.0));
+        e = new Edge(n2, n4, 20.0);
         testGraph.addEdge(e);
-        e = new Edge(n2, n3, new Number(1.0));
+        e = new Edge(n2, n3, 7.0);
         testGraph.addEdge(e);
-        e = new Edge(n5, n4, new Number(1.0));
+        e = new Edge(n5, n4, 8.0);
         testGraph.addEdge(e);
-        testGraph.bfs(n1,n4).visualize();
+        testGraph.visualize(testGraph.minimumSpanningTree());
 	}
 
 }

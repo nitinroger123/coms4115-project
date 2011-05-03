@@ -13,7 +13,7 @@ public class Node implements Type{
     private List<Node> adjacentNodes = new ArrayList<Node>();
     private long distance; //distance from source node. Useful for BFS, shortest path etc.
     private Node parent; //The parent Node in a bfs, dfs etc.
-    private Double id;
+    public Double id;
     private Map<String, Type> tags = new HashMap<String, Type>();
     public int x;
     public int y;

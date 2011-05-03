@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
@@ -94,7 +95,7 @@ public class MyGraph {
                     adjNode.setDistance(front.getDistance()+1);
                     adjNode.setParent(front);
                     bfsGraph.addNode(adjNode);
-                    bfsGraph.addEdge(new Edge(front, adjNode, null));
+                    bfsGraph.addEdge(new Edge(front, adjNode, 1.0));
                     queue.add(adjNode);
                     seen.put(adjNode.getID(), true);
                 }
@@ -127,7 +128,7 @@ public class MyGraph {
                     adjNode.setDistance(front.getDistance()+1);
                     adjNode.setParent(front);
                     bfsGraph.addNode(adjNode);
-                    bfsGraph.addEdge(new Edge(front, adjNode, null));
+                    bfsGraph.addEdge(new Edge(front, adjNode, 1.0)); //1.0 is a dummy cost
                     queue.add(adjNode);
                     seen.put(adjNode.getID(), true);
                     /**
@@ -155,12 +156,39 @@ public class MyGraph {
     }
 
     /**
-     * TODO
+     * Returns the miniumum spanning tree; Uses Kruskal's algo.
      * @return
      */
-    public MyGraph minimumSpanningTree(){
-        //place holder
-        return this;
+    public ArrayList<Edge> minimumSpanningTree(){
+    	// initialize a priority queue for the MST
+    	PriorityQueue<Edge> queue = new PriorityQueue<Edge>(); 
+		queue.addAll(edges); 
+		// initialize an array list for the edges of the MST
+		ArrayList<Edge> edgesMST = new ArrayList<Edge>(); 
+		HashMap<String, Integer> map = new HashMap<String, Integer>(); 
+		Integer counter = 1;
+		for(Node node: nodes) {
+			map.put(node.id.toString(), counter); 
+			counter++;
+		}
+		while(!queue.isEmpty()) { 
+			Edge e = queue.remove();
+			Integer idx1 = map.get(e.node2.id.toString());
+			Integer idx2 = map.get(e.node1.id.toString());
+			if(!idx1.equals(idx2)) {
+				edgesMST.add(e);
+				for(String node: map.keySet()) {
+					if(map.get(node).equals(idx2)) {
+						map.put(node, idx1);
+					}
+				}
+			}
+		}
+		for(Edge e: edgesMST) {
+			System.out.println(e.node1.toString() + " " + e.node2.id.toString() + " " + e.cost); 
+		}
+		
+        return edgesMST;
     }
     
     /**
@@ -390,8 +418,16 @@ public class MyGraph {
 		return prNew;
 	}
 	
+	/**
+	 * method to display the graph 
+	 */
 	public void visualize(){
 		DisplayGraph g = new DisplayGraph(new ArrayList<Edge>(this.edges));
+		g.setVisible(true);
+	}
+	
+	public void visualize(ArrayList<Edge> edges){
+		DisplayGraph g = new DisplayGraph(edges);
 		g.setVisible(true);
 	}
 	
