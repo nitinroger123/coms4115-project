@@ -3,9 +3,9 @@ package interpreter.types;
 import interpreter.types.*;
 
 public class Edge {
-	private Node node1;
-	private Node node2;
-	private Type value;
+	 public Node node1;
+	 public Node node2;
+	 public Type value;
 	 
 	/**
 	 * creates an undirected edge between node1 and node 2

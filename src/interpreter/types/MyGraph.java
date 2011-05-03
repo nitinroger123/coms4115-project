@@ -1,6 +1,8 @@
 package interpreter.types;
 
 
+import helper.DisplayGraph;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -386,6 +388,11 @@ public class MyGraph {
 		
 		
 		return prNew;
+	}
+	
+	public void visualize(){
+		DisplayGraph g = new DisplayGraph(new ArrayList<Edge>(this.edges));
+		g.setVisible(true);
 	}
 	
 }

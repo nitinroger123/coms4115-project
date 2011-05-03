@@ -4,6 +4,7 @@ import helper.IDGenerator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 public class Node implements Type{
 	private Type value;
@@ -12,6 +13,8 @@ public class Node implements Type{
 	private Node parent; //The parent Node in a bfs, dfs etc.
 	private Double id;
 	private HashMap<String, Type> tags = new HashMap<String, Type>();
+	public int x;
+	public int y;
 	
 	public String getValue(){
 		return value.getValue();
@@ -23,6 +26,8 @@ public class Node implements Type{
 	
 	public Node(){
 		this.id = IDGenerator.generateNodeId();
+		this.x = new Random().nextInt(500);
+		this.y = new Random().nextInt(500);
 	}
 
 	/*
@@ -31,6 +36,8 @@ public class Node implements Type{
 	public Node(Type value){
 		this.value = value;
 		this.id = IDGenerator.generateNodeId();
+		this.x = new Random().nextInt(500);
+		this.y = new Random().nextInt(500);
 	}	
 
 	/**
