@@ -1,5 +1,6 @@
 package interpreter.types;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Matrix implements Type{
 	private ArrayList<ArrayList<Number>> matVals;
@@ -36,7 +37,7 @@ public class Matrix implements Type{
 		matVals = new ArrayList<ArrayList<Number>>();
 		int n = mat.getNumberOfNodes();
 		for(int i = 0; i < n; i++){
-			ArrayList<Node> adjNodes = mat.getNode(i).getAdjacent();
+			List<Node> adjNodes = mat.getNode(i).getAdjacent();
 			int m = adjNodes.size();
 			matVals.add(new ArrayList<Number>());
 			for(int j = 0; j < m; j++){
