@@ -34,6 +34,7 @@ class DisplayPanel extends JPanel {
 	ArrayList<Edge> edge;
 	int xs; // a variable for the x coordinates of each vertex
 	int ys; // a variable for the y coordinates of each vertex
+	public static final int DIMENSION = 30;
 
 	
 	public DisplayPanel(ArrayList<Edge> edge) {
@@ -65,8 +66,8 @@ class DisplayPanel extends JPanel {
 			g.drawLine(dx1, dy1, dx2, dy2);
 			g.drawString(e.node1.getValue(), dx1, dy1);
 			g.drawString(e.node2.getValue(), dx2, dy2);
-			g.drawRoundRect(dx1, dy1, 20, 20, 20, 20);
-			g.drawRoundRect(dx2, dy2, 20, 20, 20, 20);
+			g.drawRoundRect(dx1, dy1, DIMENSION,DIMENSION , DIMENSION, DIMENSION);
+			g.drawRoundRect(dx2, dy2, DIMENSION,DIMENSION , DIMENSION, DIMENSION);
 		}
 	}
 } 

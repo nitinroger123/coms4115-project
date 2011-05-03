@@ -2,10 +2,11 @@ package interpreter.types;
 
 import interpreter.types.*;
 
-public class Edge {
+public class Edge implements Comparable<Edge>{
 	 public Node node1;
 	 public Node node2;
 	 public Type value;
+	 public Double cost;
 	 
 	/**
 	 * creates an undirected edge between node1 and node 2
@@ -17,6 +18,11 @@ public class Edge {
 		this.node1 = node1;
 		this.node2 = node2;
 		this.value = value;
+	}
+	public Edge(Node node1, Node node2, Double cost ){
+		this.node1 = node1;
+		this.node2 = node2;
+		this.cost = cost;
 	}
 	
 	/**
@@ -79,6 +85,16 @@ public class Edge {
 		} else if (!value.equals(other.value))
 			return false;
 		return true;
+	}
+	
+	public int compareTo(Edge edg){
+		if(this.cost > edg.cost){
+			return 1;
+		}
+		if(this.cost == edg.cost){
+			return 0;
+		}
+		return -1; 
 	}
 	
 	

@@ -18,8 +18,9 @@ public class MyGraphTest {
 
     // This creates a test graph as shown here http://en.wikipedia.org/wiki/File:Graph.traversal.example.svg
     // TODO Change this graph to be a generic graph which can be a test case for all the graph methods,
+   
     private MyGraph getTestGraph() {
-        MyGraph myGraph = new MyGraph();
+/*        MyGraph myGraph = new MyGraph();
         Node[] arr = new Node[] {
                 new Node(new Number(1)), new Node(new Number(2)), new Node(new Number(3)), new Node(new Number(4)),
                 new Node(new Number(5)), new Node(new Number(6)), new Node(new Number(7)) 
@@ -30,8 +31,8 @@ public class MyGraphTest {
                 new Edge(arr[4], arr[5], null) 
         };
         myGraph.addAllNodes(Arrays.asList(arr));
-        myGraph.addAllEdges(Arrays.asList(arrEdge));
-        return myGraph;
+        myGraph.addAllEdges(Arrays.asList(arrEdge));*/
+        return null;
     }
     
     @Before
