@@ -31,12 +31,31 @@ public class Vector implements Type{
 		}
 	}
 	
+	/**
+	 * Creates a vector of uniform values
+	 */
+	public Vector(int n, Number val){
+		vecVals = new ArrayList<Number>();
+		for(int i = 0; i < n; i++){
+			vecVals.add(new Number(val));
+		}
+	}
+	
+	
 	public String getValue(){
 		return "";
 	}
 	
 	public Number get(int i){
 		return vecVals.get(i);
+	}
+	
+	public Vector scalarMult(Number a){
+		ArrayList<Number> newVals = new ArrayList<Number>();
+		for(int i = 0; i < vecVals.size(); i++){
+			newVals.add(Number.multiply(a, vecVals.get(i)));
+		}
+		return new Vector(newVals);
 	}
 	
 	public Number dot(Vector other){
@@ -59,9 +78,25 @@ public class Vector implements Type{
 		Number norm = this.dot(this);
 		ArrayList<Number> newVals = new ArrayList<Number>();
 		for(int i = 0; i < vecVals.size(); i++){
-			newVals.add(Number.divide(vecVals.get(i), norm));
+			newVals.add(Number.divide(vecVals.get(i), Number.pow(norm, new Number(0.5))));
 		}
 		return new Vector(newVals);
+	}
+	
+	public Vector elementMult(Vector other){
+		ArrayList<Number> newVals = new ArrayList<Number>();
+		for(int i = 0; i < vecVals.size(); i++){
+			newVals.add(Number.multiply(vecVals.get(i), other.get(i)));
+		}
+		return new Vector(newVals);
+	}
+	
+	public void print(){
+		String str = "";
+		for(int i = 0; i < vecVals.size(); i++){
+			str += vecVals.get(i).getValue() + " ";
+		}
+		System.out.println(str);
 	}
 	
 	public Number getSize(){
