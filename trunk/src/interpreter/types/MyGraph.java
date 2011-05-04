@@ -4,7 +4,6 @@ package interpreter.types;
 import helper.DisplayGraph;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -239,7 +238,7 @@ public class MyGraph {
     }
     
     /**
-     * TODO Implemented a naive DFS, anyone who wants to work on it, create and return the dfs graph.
+     * Implemented a naive DFS
      * @param start
      * @param goal
      * @return
@@ -247,28 +246,39 @@ public class MyGraph {
     public MyGraph dfs(Node start, Node goal) {
         Set<Node> visitedNodeSet = new HashSet<Node>();
         Stack<Node> stack = new Stack<Node>();
-        List<Node> list = new LinkedList<Node>();
+        Stack<Node> dfsStack = new Stack<Node>();
         MyGraph graph = new MyGraph();
-        visitedNodeSet.add(start);
-        list.add(start);
-        stack.addAll(start.getAdjacent());
-        Node temp; 
+        Node head = new Node(start.getContents());
+        head.setParent(null); 
+        stack.add(start);
+        dfsStack.add(head);
+        Node temp, childNode;
+        Edge e;
         while(!stack.isEmpty()) {
             temp = stack.pop();
-            // We have reached our destination.
-            if(temp.equals(goal)) {
-                list.add(temp);
-                break;
-            }
-            else if(visitedNodeSet.contains(temp)) {
+            if(visitedNodeSet.contains(temp)) {
                 continue;
             }
+            childNode = new Node(temp.getContents());
+            if(!temp.equals(start)) {
+                childNode.setParent(dfsStack.peek());
+                e = new Edge(childNode.getParent(), childNode, 1.0);
+                dfsStack.add(childNode);
+                graph.addEdge(e);
+            }
+            // We have reached our destination.
+            if(temp.equals(goal)) {
+                break;
+            }
             visitedNodeSet.add(temp);
-            list.add(temp);
+            for(Node n: temp.getAdjacent()) {
+                n.setParent(temp);
+            }
             stack.addAll(temp.getAdjacent());
         }
-        System.out.println(list);
-        return this; // place holder
+        dfsStack.remove(0);
+        graph.addAllNodes(dfsStack);
+        return graph;
     }
 
     /**
