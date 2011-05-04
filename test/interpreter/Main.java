@@ -1,34 +1,56 @@
 package interpreter;
 
+import java.util.Arrays;
+
 import interpreter.types.Edge;
 import interpreter.types.MyGraph;
 import interpreter.types.Node;
 import interpreter.types.Number;
 
 public class Main {
-	public static void main(String args[]){
-		MyGraph testGraph = new MyGraph();
-		Node n1 = new Node(new Number(1.0));
-        Node n2 = new Node(new Number(2.0));
-        Node n3 = new Node(new Number(3.0));
-        Node n4 = new Node(new Number(4.0));
-        Node n5 = new Node(new Number(5.0));
-        testGraph.addNode(n1);
-        testGraph.addNode(n2);
-        testGraph.addNode(n3);
-        testGraph.addNode(n4);
-        testGraph.addNode(n5);
-        Edge e = new Edge(n1, n2, 10.0);
-        testGraph.addEdge(e);
-        e = new Edge(n1, n5, 2.0);
-        testGraph.addEdge(e);
-        e = new Edge(n2, n4, 20.0);
-        testGraph.addEdge(e);
-        e = new Edge(n2, n3, 7.0);
-        testGraph.addEdge(e);
-        e = new Edge(n5, n4, 8.0);
-        testGraph.addEdge(e);
-        testGraph.visualize(testGraph.minimumSpanningTree());
-	}
+    public static void main(String args[]){
+        mstTest();
+        dfsTest();
+        bfsTest();
+    }
 
+    // Graph from http://en.wikipedia.org/wiki/File:Msp1.jpg
+    private static MyGraph getTestGraph() {
+        MyGraph myGraph = new MyGraph();
+        Node[] arr = new Node[] {
+                new Node(new Number(1)), new Node(new Number(2)), new Node(new Number(3)), new Node(new Number(4)),
+                new Node(new Number(5)), new Node(new Number(6)) 
+        };
+        Edge[] arrEdge = new Edge[] {
+                new Edge(arr[0], arr[1], 1.0), new Edge(arr[0], arr[4], 3.0), new Edge(arr[0], arr[3], 4.0), 
+                new Edge(arr[1], arr[3], 4.0), new Edge(arr[1], arr[4], 2.0), new Edge(arr[2], arr[4], 4.0), 
+                new Edge(arr[2], arr[5], 5.0), new Edge(arr[3], arr[4], 4.0), new Edge(arr[4], arr[5], 7.0) 
+        };
+        myGraph.addAllNodes(Arrays.asList(arr));
+        myGraph.addAllEdges(Arrays.asList(arrEdge));
+        return myGraph;
+    }
+
+    public static void mstTest() {
+        MyGraph graph = getTestGraph();
+        graph.visualize(graph.minimumSpanningTree());
+    }
+    
+    public static void dfsTest() {
+        MyGraph graph = getTestGraph();
+        Node start = graph.getNode(0);
+        Node end = graph.getNode(2);
+        MyGraph temp = graph.dfs(start, end);
+        System.out.println(temp.getNumberOfEdges());
+        System.out.println(temp.getNumberOfNodes());
+        temp.visualize();
+    }
+    
+    public static void bfsTest() {
+        MyGraph testGraph = getTestGraph();
+        Node n1 = testGraph.getNode(0);
+        Node n5 = testGraph.getNode(5);
+        testGraph.bfs(n1,n5).visualize();
+    }
 }
+
