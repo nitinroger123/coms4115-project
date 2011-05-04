@@ -4,50 +4,153 @@
   import java.util.HashMap;
   import java.util.Stack;
   import interpreter.types.*;
+  import java.io.*;
 
   class SemanticWrapper {
     public Object val;
-    public HashMap<String, Object> map; 
-    public HashMap<String, Object> sTable;
-    public SemanticWrapper(Object val, HashMap<String, Object> sTable) {
+    public SemanticWrapper(Object val) {
         this.val = val;
-        this.sTable = sTable;
     }
   }
 
+  class GPLHelper {
+      public static boolean isTrue(Object obj) {
+      
+        if (obj == null) return false;
+      
+        if (((Double)(obj)).doubleValue()!=0)
+            return true;
+        else
+            return false;
+      }
+  }
+  
   class GPLLexer implements GPLTokens {
 	private int lastChar = 32;
     private int token;
     private SemanticWrapper yylval;
+    
+    
     private boolean inLiteral = false;
     private boolean inComment = false;
-    private String s;
+    private boolean waitingForReturn = false;
     
+    private int blockLevel = 0;
+    
+    private String s;
     private Stack<HashMap<String, Object>> scopes = new Stack<HashMap<String, Object>>();
+    
+    private Stack<Reader> inputs = new Stack<Reader>();
   
     public GPLLexer() {
         scopes.push(new HashMap<String, Object>());
+        inputs.push(new InputStreamReader(System.in));
+    }
+  
+    public Stack<HashMap<String, Object>> getScopes() {
+        return scopes;
     }
   
     /** Read a single input character from standard input.
      */
     private int nextChar() {
         try {
-          int c = System.in.read();
-		  return c;
+            int c = inputs.peek().read();
+            return c;
         } catch (Exception e) {
-          return -1;
+            return -1;
         }
     }
+    
+    private String getLine() {
+        try {
+            String out = "";
+            int c = inputs.peek().read();
+            while (c!='\n' && c!='\r') {
+                out+=(char)c;
+                c = inputs.peek().read();
+            }
+            return out;
+        } catch (Exception e) {
+          return "";
+        }
+    }
+    
+    //Skip to the next elsif, else, or end
+    private int skip() {
+        Reader stream = inputs.peek();
+        
+        StreamTokenizer t = new StreamTokenizer(stream);
+        t.quoteChar((int)('"'));
+        t.commentChar((int)('#'));
+        t.parseNumbers();
+        t.wordChars('_', '_');
+        t.eolIsSignificant(true);
+        
+        int counter = 1;
+        String if_token = "if";
+        String def_token = "def";
+        String while_token = "while";
+        String elsif_token = "elsif";
+        String else_token = "else";
+        String end_token = "end";
+        String last = "";
+        try {
+            while(counter!=0) {
+                if (t.nextToken()!=StreamTokenizer.TT_WORD) continue;
+                //System.out.println("Current token is: " + t.sval);
+                
+                if (if_token.equals(t.sval)) {
+                    counter++;
+                } else if (elsif_token.equals(t.sval) && counter==1) {
+                    last=elsif_token; counter--;
+                } else if (else_token.equals(t.sval) && counter==1) {
+                    last=else_token; counter--;
+                } else if (def_token.equals(t.sval)) {
+                    counter++;
+                } else if (end_token.equals(t.sval)) {
+                    last=end_token; counter--;
+                }
+                //TODO: handle no-end error. Watch for end of stream here
+            }
+            
+            //stream.reset();
+        } catch (Exception e) {
+            //Do nothing
+        }
+        
+        if (last.equals(elsif_token)) {
+            String restOfLine = getLine();
 
+            inputs.push(new StringReader(restOfLine));
+            
+            GPLParser liner = new GPLParser(this);
+            liner.setScopes(scopes);
+            liner.setInteractive(true);
+            nextToken();
+            liner.parse();
+            
+            inputs.pop();
+            
+            boolean decision = GPLHelper.isTrue(liner.getReturn().val);
+                
+            if (decision) {
+                scopes.push(new HashMap<String, Object>());
+                return nextToken();
+            } else {
+                return skip();
+            }
+        }
+        
+        return nextToken();
+    }
+    
     /** Read the next token and return the
      *  corresponding integer code.
      */
-    int nextToken() {
+    public int nextToken() {
 	    int c = lastChar;
         s="";
-        
-        lastChar = 32;
         
         if (inComment) {
             while (c!='\n') {
@@ -55,7 +158,7 @@
             }
             inComment = false;
             lastChar = '\n';
-            nextToken();
+            return nextToken();
         }
         
         if (inLiteral) {
@@ -71,15 +174,15 @@
 		while (c==32 || c==11 || c==13) {
 			c=nextChar();
 		}
-        
             
 		if (c<0) return (token=ENDINPUT);
 		
         String newline = "\n";
-        
         if (c == newline.charAt(0)) {
             return token=NL;
         }
+        
+        lastChar=32;
         
 		//Take care of all the special one-character tokens
 		switch (c) {
@@ -113,7 +216,7 @@
                      return token='!';
 		  case '&' : 
                      return token='&';
-          case '|' : 
+          case '|' :
                      return token='|';
           case '"' :
                      {inLiteral = true; return nextToken();}
@@ -127,57 +230,90 @@
 			c=nextChar();
 		}
         
+        //System.out.println("And s is: " + s);
+        
         lastChar = c;
         
-		if (s.matches("([+-]?[0-9]*\\.[0-9]+)|([+-]?[0-9]+)")) {
-            yylval = new SemanticWrapper(Double.parseDouble(s));
-			return token=NUMBER;
-		} else if (s.equals("Number")||s.equals("Graph")||s.equals("String")||s.equals("Function")) {
-            yylval = new SemanticWrapper(s);
-			return token=TYPE;
-		} else if (s.equals("print")) {
-			return token=PRINT;
-		} else if (s.equals("include")) {
-			return token=INCLUDE;
-		} else if (s.equals("def")) {
-            scopes.push(new HashMap<String, Object>());
-			return token=DEF;
-		} else if (s.equals("if")) {
-            scopes.push(new HashMap<String, Object>());
-			return token=IF;
-		} else if (s.equals("else")) {
-            scopes.pop();
-            scopes.push(new HashMap<String, Object>());
-			return token=ELSE;
-		} else if (s.equals("elsif")) {
-            scopes.pop();
-            scopes.push(new HashMap<String, Object>());
-			return token=ELSIF;
-		} else if (s.equals("while")) {
-            scopes.push(new HashMap<String, Object>());
-			return token=WHILE;
-		} else if (s.equals("next")) {
-			return token=NEXT;
-		} else if (s.equals("last")) {
-			return token=LAST;
-		} else if (s.equals("end")) {
-            scopes.pop();
-			return token=END;
-		} else if (s.equals("exit")) {
-			return token=EXIT;
-		} else if (s.equals("return")) {
-			return token=RETURN;
-		} else if (s.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
-            yylval = new SemanticWrapper(s);
-			return token=ID;
-        }
-		
+            if (s.matches("([+-]?[0-9]*\\.[0-9]+)|([+-]?[0-9]+)")) {
+                yylval = new SemanticWrapper(Double.parseDouble(s));
+                return token=NUMBER;
+            } else if (s.equals("Number")||s.equals("Graph")||s.equals("String")||s.equals("Function")) {
+                yylval = new SemanticWrapper(s);
+                return token=TYPE;
+            } else if (s.equals("print")) {
+                return token=PRINT;
+            } else if (s.equals("include")) {
+                return token=INCLUDE;
+            } else if (s.equals("def")) {
+                scopes.push(new HashMap<String, Object>());
+                return token=DEF;
+            } else if (s.equals("if")) {
+                inputs.push(new StringReader(getLine()));
+                
+                GPLParser liner = new GPLParser(this);
+                liner.setScopes(scopes);
+                liner.setInteractive(true);
+                liner.parse();
+                
+                inputs.pop();
+                
+                boolean decision = GPLHelper.isTrue(liner.getReturn().val);
+                
+                if (decision) {
+                    scopes.push(new HashMap<String, Object>());
+                    return nextToken();
+                } else {
+                    return skip();
+                }
+            }  else if (s.equals("elsif")) {
+                scopes.pop();
+                scopes.push(new HashMap<String, Object>());
+                return token=ELSIF;
+            } else if (s.equals("else")) {
+                scopes.pop();
+                return skip();
+            } else if (s.equals("while")) {
+                inputs.push(new StringReader(getLine()));
+                
+                GPLParser liner = new GPLParser(this);
+                liner.setScopes(scopes);
+                liner.setInteractive(true);
+                liner.parse();
+                
+                inputs.pop();
+                
+                boolean decision = GPLHelper.isTrue(liner.getReturn().val);
+                
+                if (decision) {
+                    scopes.push(new HashMap<String, Object>());
+                    return nextToken();
+                } else {
+                    return skip();
+                }
+            } else if (s.equals("next")) {
+                scopes.pop();
+                return token=NEXT;
+            } else if (s.equals("last")) {
+                scopes.pop();
+                return token=LAST;
+            } else if (s.equals("end")) {
+                scopes.pop();
+                return nextToken();
+            } else if (s.equals("exit")) {
+                return token=EXIT;
+            } else if (s.equals("return")) {
+                return token=RETURN;
+            } else if (s.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
+                yylval = new SemanticWrapper(s);
+                return token=ID;
+            }
+            
 		return -1;
     }
-
+    
     /** Return the token code for the current lexeme.
      */
-    int getToken() {
+    public int getToken() {
       return token;
     }
 	
@@ -207,9 +343,12 @@
 %token NL
 %token TYPE ID STRING_LITERAL NUMBER
 %token '+' '-' '*' '/' '(' ')' '^' ',' '.' '!' '|' '&'
-%left  '+' '-' '|'
-%left  '*' '/' '%' '&'
+%left  '+' '-'
+%left  '*' '/' '%' 
 %right '^'
+%right '!'
+%left  '|'
+%left  '&'
 
 %% 
 
@@ -222,33 +361,32 @@ block   : action
         | /* empty */
         ;
 
-defun 	: DEF ID '(' defargswrapper ')' NL action NL END
+defun 	: DEF ID '(' defargswrapper ')' NL actions NL END
 		;
-action 	: IF '(' boolexp ')' NL action NL elsec END
-		| WHILE '(' boolexp ')' NL action NL END
+
+actions : action
+        | actions NL action
+        ;
+        
+action 	: IF '(' expr ')' NL actions NL elsec END
+		| WHILE '(' expr ')' NL actions NL END
 		| INCLUDE '(' expr ')'
-		| PRINT '(' expr ')'            {System.out.println($3.val);}
+		| PRINT '(' expr ')'            {System.out.println($3.val); setReturn(null); }
 		| NEXT
 		| LAST
 		| RETURN expr
 		| RETURN
-		| EXIT							{System.exit(0);}
+		| EXIT							{System.exit(0); setReturn(null); }
 		| declaration
 		| assignment
 		| expr
 		;
+        
 elsec	: ELSE action NL
-		| ELSIF '(' boolexp ')' NL action NL elsec
+		| ELSIF '(' expr ')' NL action NL elsec
 		| /* empty */
 		;
-		
-boolexp	: expr cpop expr
-		| symbol '&' '&' boolexp
-		| symbol '|' '|' boolexp
-		| '!' boolexp				
-		| '[' boolexp ']'
-		| symbol 
-		;
+        
 cpop 	: '=' '='
 		| '!' '=' 
 		| '<'
@@ -271,7 +409,7 @@ argswrapper 	: args
 declaration : TYPE ID '=' expr              {declare((String)$1.val,(String)$2.val,$4.val);}
 			| TYPE ID                       {declare((String)$1.val,(String)$2.val,null);}
 			;
-assignment	: ID '=' expr                   {modify((String)$1.val, $3.val);}
+assignment	: ID '=' expr                   {modify((String)$1.val, $3.val); setReturn($3); }
 			;
 
 /* get rid of the char strings */
@@ -280,41 +418,82 @@ expr		: ID '.' ID '(' argswrapper ')'
 			| valexpr                       {$$.val = $1.val;}
 			;
 /* TODO: unary negation operator */
-valexpr 	: valexpr '+' valexpr            {$$ = new SemanticWrapper((Double)($1.val)+(Double)($3.val));}
-			| valexpr '-' valexpr            {$$ = new SemanticWrapper((Double)($1.val)-(Double)($3.val));}
-			| valexpr '*' valexpr            {$$ = new SemanticWrapper((Double)($1.val)*(Double)($3.val));}
-			| valexpr '/' valexpr            {$$ = new SemanticWrapper((Double)($1.val)/(Double)($3.val));}
-			| valexpr '^' valexpr            {$$ = new SemanticWrapper(Math.pow((Double)($1.val),(Double)($3.val)));}
-            | valexpr '%' valexpr            {$$ = new SemanticWrapper((Double)($1.val)%(Double)($3.val));}
-			| '(' valexpr ')'               {$$ = new SemanticWrapper($2.val);}
-			| symbol				           {$$ = new SemanticWrapper($1.val);}
+valexpr 	: valexpr '+' valexpr            {$$ = new SemanticWrapper((Double)($1.val)+(Double)($3.val)); setReturn($$); }
+			| valexpr '-' valexpr            {$$ = new SemanticWrapper((Double)($1.val)-(Double)($3.val)); setReturn($$); }
+			| valexpr '*' valexpr            {$$ = new SemanticWrapper((Double)($1.val)*(Double)($3.val)); setReturn($$); }
+			| valexpr '/' valexpr            {$$ = new SemanticWrapper((Double)($1.val)/(Double)($3.val)); setReturn($$); }
+			| valexpr '^' valexpr            {$$ = new SemanticWrapper(Math.pow((Double)($1.val),(Double)($3.val))); setReturn($$); }
+            | valexpr '%' valexpr            {$$ = new SemanticWrapper((Double)($1.val)%(Double)($3.val)); setReturn($$); }
+            | valexpr '|' valexpr            {$$ = new SemanticWrapper((GPLHelper.isTrue($1.val) ? TRUE : (GPLHelper.isTrue($3.val) ? TRUE : FALSE))); setReturn($$); }
+            | valexpr '&' valexpr            {$$ = new SemanticWrapper((GPLHelper.isTrue($1.val) ? (GPLHelper.isTrue($3.val) ? TRUE : FALSE) : FALSE)); setReturn($$); }
+			| '(' valexpr ')'               {$$ = new SemanticWrapper($2.val); setReturn($$); }
+			| symbol				           {$$ = new SemanticWrapper($1.val); setReturn($$); }
 			;
-symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val));}
-			| NUMBER 				{$$ = new SemanticWrapper($1.val);}
+symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val)); setReturn($$); }
+			| NUMBER 				{$$ = new SemanticWrapper($1.val); setReturn($$); }
 			| STRING_LITERAL
 			;
 
 %%
   private GPLLexer lexer;
+  private final Double TRUE = new Double(1);
+  private final Double FALSE = new Double(0);
   
   private HashMap<String, Object> symbolTable = new HashMap<String, Object>();
+  private Stack<HashMap<String, Object>> scopes;
+  private boolean interactive;
+  private SemanticWrapper returnVal = null;
 
-  public GPLParser(GPLLexer lexer) { this.lexer = lexer; }
-
+  public GPLParser(GPLLexer lexer) { 
+    this.lexer = lexer; 
+    scopes = lexer.getScopes();
+    interactive = false;
+  }
+  
+  //This activates the interpreted modes!
+  public void setInteractive(boolean interactive) {
+    this.interactive = interactive;
+  }
+  
+  public void setScopes(Stack<HashMap<String, Object>> scopes) {
+    this.scopes = scopes;
+  }
+  
   private void yyerror(String msg) {
     Main.error(yyerrno<0 ? msg : yyerrmsgs[yyerrno]);
   }
   
   private Object lookup(String name) {
-    return symbolTable.get(name);
+    int index = scopes.size()-1;
+    
+    while (index>=0 && scopes.get(index).get(name)==null) {
+        index--;
+    }
+    
+    if (index>=0) {
+        return scopes.get(index).get(name);
+    } else {
+        //TODO: throw an error, nothing was found
+        return null;
+    }
   }
   
   private void modify(String name, Object val) {
-    symbolTable.put(name, val);
+    scopes.peek().put(name, val);
   }
   
   private void declare(String type, String name, Object val) {
     if (type.equals("Number")) {
-        symbolTable.put(name, (Double)val);
+        scopes.peek().put(name, (Double)val);
     }
+  }
+  
+  private void setReturn(SemanticWrapper toReturn) {
+    if (interactive) {
+        returnVal = toReturn;
+    }
+  }
+  
+  public SemanticWrapper getReturn() {
+    return returnVal;
   }

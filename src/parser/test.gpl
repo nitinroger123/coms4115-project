@@ -1,25 +1,44 @@
-def sayHello()
-    print(123)
+
+Number t = 0^3
+Number j = 1
+
+print(j)
+
+if (0)
+    
+elsif (1)
+
+    Number j = 2
+    
+    print("You should see me!")
+    
+    print(j)
+    
+    if (0)
+        
+    elsif (1)
+    
+        Number j = 3
+        
+        print("You should see me!")
+        print(j)
+    else
+        print("You shouldn't see me again!")
+    end
+else
+    print("You shouldn't see me!")
 end
 
-Number pi = 3.1415926
-Number radius =  5
+print(j)
+print("hello")
 
-# this line should do nothing!
-print((123+12)*20) #this shows how in-line comment works
-print(2^3^4)
-print(3.5%1.2)
-print("hello world!")
-
-
-# let's calculate the area of a circle!
-print ("Area of the circle is")
-print(pi*radius^2)
+if (1)
+    print("Second if works too!")
+else 
+    print("You shouldn't see me!")
+end
 
 print("")
-print("Now let's make radius 10 instead")
-radius = 10
-print(pi*radius^2)
-
-# this is optional as program would exit here anyways
-exit
+while (1)
+    print("asd")
+end
