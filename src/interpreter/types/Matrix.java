@@ -1,10 +1,24 @@
 package interpreter.types;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Matrix implements Type{
 	private ArrayList<ArrayList<Number>> matVals;
 	
+	public Matrix(Vector vec){
+		int n = (int)Math.floor(vec.getSize().getDouble());
+		matVals = new ArrayList<ArrayList<Number>>();
+		for(int i = 0; i < n; i++){
+			matVals.add(new ArrayList<Number>());
+			for(int j = 0; j < n; j++){
+				if(i == j){
+					matVals.get(i).add(new Number(vec.get(i)));
+				}
+				else{matVals.get(i).add(new Number(0));}
+			}
+		}
+	}
 	
 	/**
 	 * Assumes that Graph is an n-length list of nodes with tags that are m-length lists of numbers and constructs a matrix
@@ -38,9 +52,8 @@ public class Matrix implements Type{
 		int n = mat.getNumberOfNodes();
 		for(int i = 0; i < n; i++){
 			List<Node> adjNodes = mat.getNode(i).getAdjacent();
-			int m = adjNodes.size();
 			matVals.add(new ArrayList<Number>());
-			for(int j = 0; j < m; j++){
+			for(int j = 0; j < n; j++){
 				if(adjNodes.contains(mat.getNode(j))){
 					matVals.get(i).add(new Number(1));
 				}else{
@@ -78,14 +91,27 @@ public class Matrix implements Type{
 		return matVals.get(0).size();
 	}
 	
-	public Vector vecMult(Matrix mat, Vector vec){
+	public Vector vecMult(Vector vec){
 		ArrayList<Number> newVals = new ArrayList<Number>();
-		for(int i = 0; i < mat.getHeight(); i++){
+		for(int i = 0; i < getHeight(); i++){
 			Number temp = new Number(0); // will be ith value of new vec 
-			for(int j = 0; j < mat.getWidth(); j++){
-				temp = Number.add(temp, Number.multiply(mat.get(i,j), vec.get(j)));
+			for(int j = 0; j < getWidth(); j++){
+				temp = Number.add(temp, Number.multiply(get(i,j), vec.get(j)));
 			}
+			newVals.add(temp);
 		}
 		return new Vector(newVals);
 	}
+	
+//	public Matrix matMult(Matrix other){
+//		ArrayList<Number> newVals = new ArrayList<Number>();
+//		for(int i = 0; i < getHeight(); i++){
+//			Number temp = new Number(0); // will be ith value of new vec 
+//			for(int j = 0; j < getWidth(); j++){
+//				temp = Number.add(temp, Number.multiply(get(i,j), vec.get(j)));
+//			}
+//			newVals.add(temp);
+//		}
+//		return new Vector(newVals);
+//	}
 }
