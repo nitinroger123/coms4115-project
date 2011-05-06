@@ -30,19 +30,22 @@
     private int token;
     private SemanticWrapper yylval;
     
+    //This tells the lexer to start recording the character stream (used for backtracking)
+    private boolean record = false;
+    private Stack<String> whileBodies = new Stack<String>();
+    private Stack<String> whileConditions = new Stack<String>();
     
     private boolean inLiteral = false;
     private boolean inComment = false;
     private boolean waitingForReturn = false;
-    
-    private int blockLevel = 0;
+    private Stack<Integer> blockTypes = new Stack<Integer>();
     
     private String s;
     private Stack<HashMap<String, Object>> scopes = new Stack<HashMap<String, Object>>();
     
     private Stack<Reader> inputs = new Stack<Reader>();
   
-    public GPLLexer() {
+    public GPLLexer() throws IOException{
         scopes.push(new HashMap<String, Object>());
         inputs.push(new InputStreamReader(System.in));
     }
@@ -56,6 +59,12 @@
     private int nextChar() {
         try {
             int c = inputs.peek().read();
+            if (record) {
+                for (int i = 0; i < whileBodies.size(); i++) {
+                    whileBodies.set(i, whileBodies.get(i) + (char)c);
+                    System.out.print((char)c);
+                }
+            }
             return c;
         } catch (Exception e) {
             return -1;
@@ -113,27 +122,15 @@
                 }
                 //TODO: handle no-end error. Watch for end of stream here
             }
-            
-            //stream.reset();
         } catch (Exception e) {
             //Do nothing
         }
         
         if (last.equals(elsif_token)) {
             String restOfLine = getLine();
-
-            inputs.push(new StringReader(restOfLine));
-            
-            GPLParser liner = new GPLParser(this);
-            liner.setScopes(scopes);
-            liner.setInteractive(true);
             nextToken();
-            liner.parse();
+            boolean decision = eval(restOfLine);
             
-            inputs.pop();
-            
-            boolean decision = GPLHelper.isTrue(liner.getReturn().val);
-                
             if (decision) {
                 scopes.push(new HashMap<String, Object>());
                 return nextToken();
@@ -149,6 +146,9 @@
      *  corresponding integer code.
      */
     public int nextToken() {
+    
+        System.out.println("\ntokening...");
+    
 	    int c = lastChar;
         s="";
         
@@ -248,16 +248,9 @@
                 scopes.push(new HashMap<String, Object>());
                 return token=DEF;
             } else if (s.equals("if")) {
-                inputs.push(new StringReader(getLine()));
                 
-                GPLParser liner = new GPLParser(this);
-                liner.setScopes(scopes);
-                liner.setInteractive(true);
-                liner.parse();
-                
-                inputs.pop();
-                
-                boolean decision = GPLHelper.isTrue(liner.getReturn().val);
+                blockTypes.push(0);
+                boolean decision = eval(getLine());
                 
                 if (decision) {
                     scopes.push(new HashMap<String, Object>());
@@ -273,19 +266,17 @@
                 scopes.pop();
                 return skip();
             } else if (s.equals("while")) {
-                inputs.push(new StringReader(getLine()));
+                blockTypes.push(1);
+                String cond = getLine();
+                boolean decision = eval(cond);
                 
-                GPLParser liner = new GPLParser(this);
-                liner.setScopes(scopes);
-                liner.setInteractive(true);
-                liner.parse();
+                whileBodies.push("");
+                whileConditions.push(cond);
                 
-                inputs.pop();
-                
-                boolean decision = GPLHelper.isTrue(liner.getReturn().val);
+                record = true;
                 
                 if (decision) {
-                    scopes.push(new HashMap<String, Object>());
+                    //scopes.push(new HashMap<String, Object>());
                     return nextToken();
                 } else {
                     return skip();
@@ -297,6 +288,20 @@
                 scopes.pop();
                 return token=LAST;
             } else if (s.equals("end")) {
+                System.out.println("FOUND END TAG!");
+                //This is the end tag for a while loop
+                if (blockTypes.peek()==1) {
+                    //Strip the "end" line from the while body
+                    String whileBody = whileBodies.peek().substring(0,whileBodies.peek().length()-4);
+                    String cond = whileConditions.peek();
+                    System.out.println("Scope before second iteration: " + scopes.peek());
+                    while (eval(cond)) {
+                        eval(whileBody);
+                    }
+                    whileBodies.pop();
+                    whileConditions.pop();
+                } 
+                blockTypes.pop();
                 scopes.pop();
                 return nextToken();
             } else if (s.equals("exit")) {
@@ -317,13 +322,36 @@
       return token;
     }
 	
+    /**
+        Does not handle scopes, caller takes care of it!
+    */
+    public boolean eval(String code) {
+    
+        System.out.println("---------------- Eval: --------------");
+        System.out.println(code);
+        System.out.println("-------------------------------------");
+        System.out.println("Current scope: " + scopes.peek());
+        System.out.println("Current scope depth: " + scopes.size());
+    
+        inputs.push(new StringReader(code));
+        GPLParser liner = new GPLParser(this);
+        liner.setScopes(scopes);
+        liner.setInteractive(true);
+        liner.parse();
+        inputs.pop();
+        
+        System.out.println("Liner return: " + liner.getReturn());
+        if (liner.getReturn()==null) return false;
+        return GPLHelper.isTrue(liner.getReturn().val);
+    }
+    
 	SemanticWrapper getSemantic() {
 		return yylval;
 	}
   }
 
   class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
       GPLLexer  lexer  = new GPLLexer();
       lexer.nextToken();
       GPLParser parser = new GPLParser(lexer);
@@ -479,7 +507,23 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val)
   }
   
   private void modify(String name, Object val) {
-    scopes.peek().put(name, val);
+    int index = scopes.size()-1;
+    
+    boolean declared = false;
+    while (index>=0) {
+        if (scopes.get(index).get(name)!=null) {
+            declared = true;
+            break;
+        }
+        index--;
+    }
+    
+    if (declared) {
+        scopes.get(index).put(name, val);
+    } else {
+        scopes.peek().put(name, val);
+    }
+    
   }
   
   private void declare(String type, String name, Object val) {

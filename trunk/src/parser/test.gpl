@@ -38,7 +38,13 @@ else
     print("You shouldn't see me!")
 end
 
+
 print("")
-while (1)
-    print("asd")
+Number i = 5
+while (i)
+    print("holla")
+    print(i)
+    i=i-1
 end
+
+print("")
