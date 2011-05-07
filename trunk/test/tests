@@ -1,0 +1,188 @@
+# To test the Strings 
+String s = “hello world!”
+s.print()
+String _foo_bar = "# This string has a # and the string literal has a _ "
+_foo_bar.print()
+
+#GCD Of a and b
+Number a = 100
+Number b =  50 
+if a == 0
+	print(b)
+end
+while (b != 0)
+	if(a > b)
+		a = a − b
+  else
+    b = b − a
+	end
+end
+print(a)
+
+#factorial of n
+Number n = 5
+Number fact = 1
+while(n > 0)
+	fact = fact * n
+	n = n - 1
+end
+print(fact)
+
+#iffs whiles
+Number a = 1
+Number c = 0
+Number d = 5
+if(a == 1)
+	Number b = 1
+	if( b == 1 )
+		c = 1
+		while ( d > 0 )
+			print(d)
+			d = d - 1
+		end	
+	else
+		c = d - a
+		while( c > 0)
+			print(c)
+			c = c -1
+		end
+	end
+end
+
+// # To test while
+
+number i = 3
+number j = 4
+number k = 5
+while(i>0)
+	while(j>0)
+		while(k>0)
+			i.print()
+			j.print()
+			k.print()
+			i--
+			j--
+			k--
+		end
+	end
+end
+
+// # To test if
+
+number i = 5
+
+
+if(number<6)
+	String s1 = " is less than 6"
+	i.print()
+	s1.print()
+end
+
+if(number>6)
+	String s2 = " is more than 6"
+	i.print()
+	s2.print()
+else
+	String s3 = " is not more than 6"
+	s3.print()
+
+if(number>6)
+	String s4 = " is more than 6"
+	i.print()
+	s4.print()
+elsif(number<6 && number>3)
+	String s5 = " is less than 6 but greater than 3"
+	i.print()
+	s5.print()
+elsif(number<=3 && number>=1)
+	String s6 = " is between 3 and 1"
+	i.print()
+	s6.print()
+else
+	String s7 = " is less than 1"		
+
+// # To test while
+
+number i = 3
+number j = 4
+number k = 5
+while(i>0)
+	while(j>0)
+		while(k>0)
+			i.print()
+			j.print()
+			k.print()
+			i--
+			j--
+			k--
+		end
+	end
+end
+
+// # To test if
+
+number i = 5
+
+
+if(number<6)
+	String s1 = " is less than 6"
+	i.print()
+	s1.print()
+end
+
+if(number>6)
+	String s2 = " is more than 6"
+	i.print()
+	s2.print()
+else
+	String s3 = " is not more than 6"
+	s3.print()
+
+if(number>6)
+	String s4 = " is more than 6"
+	i.print()
+	s4.print()
+elseif(number<6 && number>3)
+	String s5 = " is less than 6 but greater than 3"
+	i.print()
+	s5.print()
+elseif(number<=3 && number>=1)
+	String s6 = " is between 3 and 1"
+	i.print()
+	s6.print()
+else
+	String s7 = " is less than 1"
+	
+	
+
+// # To test the StringType class 
+
+String s = “hello world!”
+s.print()
+String _foo_bar = "# This string has a # and the string literal has a _ "
+_foo_bar.print()
+
+StringType s1("Welcome to GPL ")
+String s2 = s1.getValue()
+s2.print()
+String s3 = "This string is copied to the old string"
+StringType s4(s3)
+s4.getValue().print()
+s4.print()
+s2 = s4.substring(5)
+s2.print()
+s2 = s4.substring(5,21)
+s2.print()
+s3 = s2.concat("and now concatenated it to another string ")
+s3.print()
+number n1 = s4.find("to")
+n1.print()
+n1 = s4.findLast("String")
+n1.print()
+String s5 = s4.toUpper()
+s5.print()
+s5 = s4.toLower()
+s5.print()
+s5 = s4.reverse()
+s5.print()
+
