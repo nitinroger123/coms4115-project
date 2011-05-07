@@ -1,10 +1,11 @@
 //GPL grammar
 
 %{
-  import java.util.HashMap;
-  import java.util.Stack;
-  import interpreter.types.*;
+  import java.util.*;
   import java.io.*;
+  
+  import interpreter.types.*;
+  import helper.*;
 
   class SemanticWrapper {
     public Object val;
@@ -32,6 +33,8 @@
     
     //This tells the lexer to start recording the character stream (used for backtracking)
     private boolean record = false;
+    private int recordCap = 0;
+    private int recordLow = 0;
     private Stack<String> whileBodies = new Stack<String>();
     private Stack<String> whileConditions = new Stack<String>();
     
@@ -49,6 +52,11 @@
         scopes.push(new HashMap<String, Object>());
         inputs.push(new InputStreamReader(System.in));
     }
+    
+    public GPLLexer(StringReader reader, Stack<HashMap<String, Object>> scopes) {
+        inputs.push(reader);
+        this.scopes = scopes;
+    }
   
     public Stack<HashMap<String, Object>> getScopes() {
         return scopes;
@@ -60,9 +68,8 @@
         try {
             int c = inputs.peek().read();
             if (record) {
-                for (int i = 0; i < whileBodies.size(); i++) {
+                for (int i = recordLow; i < recordCap; i++) {
                     whileBodies.set(i, whileBodies.get(i) + (char)c);
-                    System.out.print((char)c);
                 }
             }
             return c;
@@ -76,9 +83,21 @@
             String out = "";
             int c = inputs.peek().read();
             while (c!='\n' && c!='\r') {
+                if (record) {
+                    for (int i = recordLow; i < recordCap; i++) {
+                        whileBodies.set(i, whileBodies.get(i) + (char)c);
+                    }
+                }
                 out+=(char)c;
                 c = inputs.peek().read();
             }
+            
+            if (record) {
+                    for (int i = recordLow; i < recordCap; i++) {
+                        whileBodies.set(i, whileBodies.get(i) + "\n");
+                    }
+                }
+            
             return out;
         } catch (Exception e) {
           return "";
@@ -146,8 +165,6 @@
      *  corresponding integer code.
      */
     public int nextToken() {
-    
-        System.out.println("\ntokening...");
     
 	    int c = lastChar;
         s="";
@@ -270,13 +287,16 @@
                 String cond = getLine();
                 boolean decision = eval(cond);
                 
-                whileBodies.push("");
-                whileConditions.push(cond);
-                
-                record = true;
-                
                 if (decision) {
-                    //scopes.push(new HashMap<String, Object>());
+                    if (!record) record = true;
+                    whileBodies.push("");
+                    whileConditions.push(cond);
+                    
+                    scopes.push(new HashMap<String, Object>());
+                    recordCap++;
+                    
+                    //System.out.println("Noticed while..." + recordLow + "," + recordCap);
+                    
                     return nextToken();
                 } else {
                     return skip();
@@ -288,18 +308,36 @@
                 scopes.pop();
                 return token=LAST;
             } else if (s.equals("end")) {
-                System.out.println("FOUND END TAG!");
                 //This is the end tag for a while loop
                 if (blockTypes.peek()==1) {
                     //Strip the "end" line from the while body
+                    
                     String whileBody = whileBodies.peek().substring(0,whileBodies.peek().length()-4);
+                    
                     String cond = whileConditions.peek();
-                    System.out.println("Scope before second iteration: " + scopes.peek());
+                    
+                    int lastRecordLow = recordLow;
+                    int lastRecordCap = recordCap;
+                    
+                    //System.out.println("First noticed end..." + recordLow + "," + recordCap);
+                    
                     while (eval(cond)) {
-                        eval(whileBody);
+                        recordLow = whileBodies.size();
+                        recordCap = whileBodies.size();
+                        
+                        //System.out.println("During while..." + recordLow + "," + recordCap);
+                        scopes.pop();
+                        scopes.push(new HashMap<String, Object>());
+                        eval(whileBody,false);
                     }
+                    recordLow=lastRecordLow;
+                    recordCap=lastRecordCap - 1;
+                    
+                    //System.out.println("After end..." + recordLow + "," + recordCap);
+                    
                     whileBodies.pop();
                     whileConditions.pop();
+                    if (whileBodies.size()==0) record = false;
                 } 
                 blockTypes.pop();
                 scopes.pop();
@@ -319,28 +357,46 @@
     /** Return the token code for the current lexeme.
      */
     public int getToken() {
-      return token;
+        return token;
     }
 	
+    private boolean eval(String code) {
+        return eval(code, true);
+    }
+    
     /**
         Does not handle scopes, caller takes care of it!
     */
-    public boolean eval(String code) {
+    private boolean eval(String code, boolean interactive) {
     
+        /*
         System.out.println("---------------- Eval: --------------");
         System.out.println(code);
         System.out.println("-------------------------------------");
         System.out.println("Current scope: " + scopes.peek());
         System.out.println("Current scope depth: " + scopes.size());
-    
+        */
+        
         inputs.push(new StringReader(code));
+        
+        if (token == 0) token = 12;
+        
+        boolean savedRecord = false;
+        if (interactive) {
+            savedRecord = record;
+            record = false;
+        }
+        
         GPLParser liner = new GPLParser(this);
         liner.setScopes(scopes);
-        liner.setInteractive(true);
+        liner.setInteractive(interactive);
         liner.parse();
         inputs.pop();
         
-        System.out.println("Liner return: " + liner.getReturn());
+        if (interactive) {
+            record = savedRecord;
+        }
+        
         if (liner.getReturn()==null) return false;
         return GPLHelper.isTrue(liner.getReturn().val);
     }
@@ -399,7 +455,7 @@ actions : action
 action 	: IF '(' expr ')' NL actions NL elsec END
 		| WHILE '(' expr ')' NL actions NL END
 		| INCLUDE '(' expr ')'
-		| PRINT '(' expr ')'            {System.out.println($3.val); setReturn(null); }
+		| PRINT '(' expr ')'            {System.out.println(((Type)$3.val).getValue()); setReturn(null); }
 		| NEXT
 		| LAST
 		| RETURN expr
@@ -428,8 +484,8 @@ defargs : TYPE ID ',' defargs
 defargswrapper 	: defargs
 				| /* empty */
 				;
-args 	: expr ',' args
-		| expr
+args 	: expr ',' args                     {((ArrayList<Object>)$$.val).add(0,$1.val);}
+		| expr                              {$$ = new SemanticWrapper(new ArrayList<Object>()); ((ArrayList<Object>)($$.val)).add($1.val);}
 		;
 argswrapper 	: args
 				| /* empty */
@@ -441,7 +497,7 @@ assignment	: ID '=' expr                   {modify((String)$1.val, $3.val); setR
 			;
 
 /* get rid of the char strings */
-expr		: ID '.' ID '(' argswrapper ')'
+expr		: ID '.' ID '(' argswrapper ')' {$$ = new SemanticWrapper(invoke((String)($1.val), (String)($3.val), (ArrayList<Object>)($5.val)));}
 			| ID '(' argswrapper ')'
 			| valexpr                       {$$.val = $1.val;}
 			;
@@ -526,9 +582,26 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val)
     
   }
   
+  private Object invoke(String name, String method, ArrayList<Object> args) {
+    Object obj = lookup(name);
+    String typeName = obj.getClass().toString();
+    
+    
+    MethodHelper helper = new MethodHelper();
+    Object[] actualArgs = args.toArray();
+    
+    Object toReturn = null;
+    try {
+        toReturn = helper.map.get(method).invoke(obj, actualArgs);
+    } catch (Exception e) {}
+    return toReturn;
+  }
+  
   private void declare(String type, String name, Object val) {
     if (type.equals("Number")) {
         scopes.peek().put(name, (Double)val);
+    } else if (type.equals("Graph")) {
+        scopes.peek().put(name, (val==null ? new MyGraph() : (MyGraph)val));
     }
   }
   
@@ -537,6 +610,8 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val)
         returnVal = toReturn;
     }
   }
+  
+  
   
   public SemanticWrapper getReturn() {
     return returnVal;
