@@ -5,7 +5,7 @@ import java.util.Arrays;
 import interpreter.types.Edge;
 import interpreter.types.MyGraph;
 import interpreter.types.Node;
-import interpreter.types.Number;
+import interpreter.types.NumberType;
 
 public class Main {
     public static void main(String args[]){
@@ -18,8 +18,8 @@ public class Main {
     private static MyGraph getTestGraph() {
         MyGraph myGraph = new MyGraph();
         Node[] arr = new Node[] {
-                new Node(new Number(1)), new Node(new Number(2)), new Node(new Number(3)), new Node(new Number(4)),
-                new Node(new Number(5)), new Node(new Number(6)) 
+                new Node(new NumberType(1)), new Node(new NumberType(2)), new Node(new NumberType(3)), new Node(new NumberType(4)),
+                new Node(new NumberType(5)), new Node(new NumberType(6)) 
         };
         Edge[] arrEdge = new Edge[] {
                 new Edge(arr[0], arr[1], 1.0), new Edge(arr[0], arr[4], 3.0), new Edge(arr[0], arr[3], 4.0), 

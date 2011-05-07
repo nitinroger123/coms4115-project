@@ -425,29 +425,29 @@ public class MyGraph implements Type{
 	 */
 	public Vector getPageRank(){
 		int n = getNumberOfNodes();
-		ArrayList<Number> invDegrees = new ArrayList<Number>();
+		ArrayList<NumberType> invDegrees = new ArrayList<NumberType>();
 		Matrix adjMat = new Matrix(this);
 		for(int i = 0; i < n; i++){
 			int sum = 0;
 			for(int j = 0; j < n; j++){
 				sum += adjMat.get(i,j).getDouble();
 			}
-			invDegrees.add(new Number(1/(double)sum));
+			invDegrees.add(new NumberType(1/(double)sum));
 		}
 		
-		Vector prOld = new Vector(n, new Number(1/(double)n));
-		Vector prNew = new Vector(n, new Number(1/(double)n));
+		Vector prOld = new Vector(n, new NumberType(1/(double)n));
+		Vector prNew = new Vector(n, new NumberType(1/(double)n));
 		Vector invDeg = new Vector(invDegrees);
 		
 		Matrix googleMatrix = new Matrix(adjMat);
 		double dampFactor = 0.15;
 		int iters = 0;
 		while( 1 - prOld.normalize().dot(prNew.normalize()).getDouble() > 0.001 || iters < 100){
-			Vector uniform = new Vector(n, new Number(1/(double)n));
+			Vector uniform = new Vector(n, new NumberType(1/(double)n));
 			prOld = new Vector(prNew);
 			//System.out.println(prOld.normalize().dot(prNew.normalize()).getValue());
 			prOld.print();
-			prNew = googleMatrix.vecMult((new Matrix(invDeg)).vecMult(prOld)).scalarMult(new Number(1-dampFactor)).add(uniform.scalarMult(new Number(dampFactor)));
+			prNew = googleMatrix.vecMult((new Matrix(invDeg)).vecMult(prOld)).scalarMult(new NumberType(1-dampFactor)).add(uniform.scalarMult(new NumberType(dampFactor)));
 			iters++;
 		}
 		

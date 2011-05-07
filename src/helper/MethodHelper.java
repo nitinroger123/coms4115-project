@@ -1,7 +1,7 @@
 package helper;
 
 import interpreter.types.*;
-import interpreter.types.Number;
+import interpreter.types.NumberType;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
@@ -22,7 +22,7 @@ public class MethodHelper {
 		HashMap<String, Method> numMap = new HashMap<String, Method>();
 		HashMap<String, Method> strMap = new HashMap<String, Method>();
 		MyGraph g = new MyGraph();
-		Number n = new Number();
+		NumberType n = new NumberType();
 		StringType str = new StringType();
 		Method graphMethods [] = g.getClass().getMethods();
 		for(int i=0;i<graphMethods.length;i++){
