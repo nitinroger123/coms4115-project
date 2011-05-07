@@ -1,4 +1,4 @@
-// Output created by jacc on Sat May 07 18:01:37 EDT 2011
+// Output created by jacc on Sat May 07 19:07:25 EDT 2011
 
 package parser;
 
@@ -158,6 +158,8 @@ package parser;
             } else {
                 return skip();
             }
+        } else if (last.equals(else_token)) {
+            scopes.push(new HashMap<String, Object>());
         }
         
         return nextToken();
@@ -190,7 +192,7 @@ package parser;
             return token=STRING_LITERAL;
         }
         
-                while (c==32 || c==11 || c==13) {
+                while (c==32 || c==11 || c==13 || c=='\t') {
                         c=nextChar();
                 }
             
@@ -222,7 +224,15 @@ package parser;
           case ')' : 
                      return token=')';
                   case '=' : 
-                     return token='=';
+                    /*
+                    lastChar = c;
+                    c = nextChar();
+                    if (c=='=') {
+                        lastChar=32;
+                        return token=EQ;
+                    }
+                    */
+                    return token='=';
           case '>' : 
                      return token='>';
                   case '<' : 
@@ -277,13 +287,6 @@ package parser;
                 } else {
                     return skip();
                 }
-            }  else if (s.equals("elsif")) {
-                scopes.pop();
-                scopes.push(new HashMap<String, Object>());
-                return token=ELSIF;
-            } else if (s.equals("else")) {
-                scopes.pop();
-                return skip();
             } else if (s.equals("while")) {
                 blockTypes.push(1);
                 String cond = getLine();
@@ -310,6 +313,7 @@ package parser;
                 scopes.pop();
                 return token=LAST;
             } else if (s.equals("end")) {
+            
                 //This is the end tag for a while loop
                 if (blockTypes.peek()==1) {
                     //Strip the "end" line from the while body
@@ -400,7 +404,7 @@ package parser;
         }
         
         if (liner.getReturn()==null) return false;
-        return GPLHelper.isTrue(liner.getReturn().val);
+        return GPLHelper.isTrue(((NumberType)(liner.getReturn().val)).getDouble());
     }
     
         SemanticWrapper getSemantic() {
@@ -3368,7 +3372,8 @@ class GPLParser implements GPLTokens {
     }
 
     private int yyr56() { // symbol : STRING_LITERAL
-        yysp -= 1;
+        {yyrv = new SemanticWrapper(new StringType((String)(yysv[yysp-1].val)));}
+        yysv[yysp-=1] = yyrv;
         return 8;
     }
 

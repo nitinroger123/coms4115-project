@@ -3,24 +3,23 @@ print(a)
 
 print("")
 Number i = 2
+Number k = 0
+if(k)
+    print("yo")
+else
+    print("neither")
+end
+
 while (i)
-    print("==================")
     i=i-1
-    Number j = 2
-    while (j)
-        print(j)
-        j=j-1
-        Number k = 2
-        while (k)
-            k = k-1
-            Number z = 2
-            while (z)
-                z=z-1
-            end
-            
-            print(k)
-        end
+    print("==================")
+    if(k)
+        print("yo")
+        k = k-1
+    else
+        print("neither2")
     end
+    
     print("-----------------")
 end
 

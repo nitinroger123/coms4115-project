@@ -157,6 +157,8 @@
             } else {
                 return skip();
             }
+        } else if (last.equals(else_token)) {
+            scopes.push(new HashMap<String, Object>());
         }
         
         return nextToken();
@@ -189,7 +191,7 @@
             return token=STRING_LITERAL;
         }
         
-		while (c==32 || c==11 || c==13) {
+		while (c==32 || c==11 || c==13 || c=='\t') {
 			c=nextChar();
 		}
             
@@ -284,13 +286,6 @@
                 } else {
                     return skip();
                 }
-            }  else if (s.equals("elsif")) {
-                scopes.pop();
-                scopes.push(new HashMap<String, Object>());
-                return token=ELSIF;
-            } else if (s.equals("else")) {
-                scopes.pop();
-                return skip();
             } else if (s.equals("while")) {
                 blockTypes.push(1);
                 String cond = getLine();
@@ -317,6 +312,7 @@
                 scopes.pop();
                 return token=LAST;
             } else if (s.equals("end")) {
+            
                 //This is the end tag for a while loop
                 if (blockTypes.peek()==1) {
                     //Strip the "end" line from the while body
