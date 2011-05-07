@@ -2,8 +2,6 @@ package interpreter;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
-
 import interpreter.types.Edge;
 import interpreter.types.MyGraph;
 import interpreter.types.Node;
@@ -18,19 +16,19 @@ public class MyGraphTest {
     MyGraph testGraph;
 	@Test
 	public void testPageRank(){
-		Node n1 = new Node(new Number(1.0));
-		Node n2 = new Node(new Number(2.0));
-		Node n3 = new Node(new Number(3.0));
-		Node n4 = new Node(new Number(4.0));
+		Node n1 = new Node(new NumberType(1.0));
+		Node n2 = new Node(new NumberType(2.0));
+		Node n3 = new Node(new NumberType(3.0));
+		Node n4 = new Node(new NumberType(4.0));
 		testGraph.addNode(n1);
 		testGraph.addNode(n2);
 		testGraph.addNode(n3);
 		testGraph.addNode(n4);
-		Edge e = new Edge(n1, n2, new Number(1.0));
+		Edge e = new Edge(n1, n2, new NumberType(1.0));
 		testGraph.addEdge(e);
-		e = new Edge(n1, n3, new Number(1.0));
+		e = new Edge(n1, n3, new NumberType(1.0));
 		testGraph.addEdge(e);
-		e = new Edge(n1, n4, new Number(1.0));
+		e = new Edge(n1, n4, new NumberType(1.0));
 		testGraph.addEdge(e);
 		Vector pr = testGraph.getPageRank();
 		pr.print();
