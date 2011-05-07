@@ -11,7 +11,7 @@ import java.util.HashMap;
  *
  */
 public class MethodHelper {
-	public HashMap<Object,HashMap<String,Method>> map = new HashMap<Object, HashMap<String,Method>>();
+	public HashMap<String,HashMap<String,Method>> map = new HashMap<String, HashMap<String,Method>>();
 	
 	public MethodHelper(){
 		init();
@@ -36,9 +36,9 @@ public class MethodHelper {
 		for(int i=0; i< strMethods.length;i++ ){
 			strMap.put(strMethods[i].getName(), strMethods[i]);
 		}
-		map.put(g, graphMap);
-		map.put(n, numMap);
-		map.put(str,strMap);
+		map.put(g.getClass().toString(), graphMap);
+		map.put(n.getClass().toString(), numMap);
+		map.put(str.getClass().toString(),strMap);
 	}
 	
 	/*
