@@ -18,6 +18,7 @@ public class Edge implements Comparable<Edge>{
 		this.node1 = node1;
 		this.node2 = node2;
 		this.value = value;
+		this.cost = Double.parseDouble(value.getValue());
 	}
 	public Edge(Node node1, Node node2, Double cost ){
 		this.node1 = node1;
