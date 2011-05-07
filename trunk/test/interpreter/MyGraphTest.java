@@ -8,6 +8,7 @@ import interpreter.types.Edge;
 import interpreter.types.MyGraph;
 import interpreter.types.Node;
 import interpreter.types.NumberType;
+import interpreter.types.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +16,26 @@ import org.junit.Test;
 
 public class MyGraphTest {
     MyGraph testGraph;
+	@Test
+	public void testPageRank(){
+		Node n1 = new Node(new Number(1.0));
+		Node n2 = new Node(new Number(2.0));
+		Node n3 = new Node(new Number(3.0));
+		Node n4 = new Node(new Number(4.0));
+		testGraph.addNode(n1);
+		testGraph.addNode(n2);
+		testGraph.addNode(n3);
+		testGraph.addNode(n4);
+		Edge e = new Edge(n1, n2, new Number(1.0));
+		testGraph.addEdge(e);
+		e = new Edge(n1, n3, new Number(1.0));
+		testGraph.addEdge(e);
+		e = new Edge(n1, n4, new Number(1.0));
+		testGraph.addEdge(e);
+		Vector pr = testGraph.getPageRank();
+		pr.print();
+	}
+	
 
     // This creates a test graph as shown here http://en.wikipedia.org/wiki/File:Graph.traversal.example.svg
     // TODO Change this graph to be a generic graph which can be a test case for all the graph methods,
