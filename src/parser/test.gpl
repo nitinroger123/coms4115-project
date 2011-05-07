@@ -1,2 +1,4 @@
 Graph a
 print(a)
+Number j = 3
+print(j)
