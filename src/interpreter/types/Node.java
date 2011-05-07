@@ -17,7 +17,8 @@ public class Node implements Type{
     private Map<String, Type> tags = new HashMap<String, Type>();
     public int x;
     public int y;
-
+    public Integer index;
+    
     public String getValue(){
         return value.getValue();
     }
@@ -105,5 +106,14 @@ public class Node implements Type{
         clone.value = this.value;
         return clone;
     }
+    
+    /**
+     * Applies a function to the value of the node
+     * @param f
+     */
+    public void applyFunction(Function f) {
+    	//TODO
+	}
 
+	
 }
