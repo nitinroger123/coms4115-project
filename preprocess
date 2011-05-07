@@ -1,0 +1,7 @@
+def a()
+	print("hello")
+end
+
+def b()
+	print("whats up")
+end

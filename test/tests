@@ -154,4 +154,32 @@ n4 = pow(n1,5)
 print(n4)
 n4 = pow(n1,2.3)
 
+#-------------------
 
+Graph a
+print(a)
+
+print("")
+Number i = 2
+while (i)
+    print("==================")
+    i=i-1
+    Number j = 2
+    while (j)
+        print(j)
+        j=j-1
+        Number k = 2
+        while (k)
+            k = k-1
+            Number z = 2
+            while (z)
+                z=z-1
+            end
+            
+            print(k)
+        end
+    end
+    print("-----------------")
+end
+
+print("")
