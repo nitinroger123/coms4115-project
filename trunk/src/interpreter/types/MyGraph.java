@@ -18,24 +18,44 @@ import java.util.Stack;
  * @author nitin
  *
  */
-public class MyGraph {
+public class MyGraph implements Type{
     private List<Node> nodes;
     private List<Edge> edges;
     private Integer numberOfNodes;
     private Integer numberOfEdges;
-
+    private Double adj[][];
+    private Integer index;
     public MyGraph(){
         this.nodes = new ArrayList<Node>();
         this.edges = new ArrayList<Edge>();
         this.numberOfNodes = 0;
         this.numberOfEdges = 0;
+        adj = new Double[1000][1000];
+        this.index = 0;
     }
-
+    
+    public Double[][] getAdjMatrix(){
+    	for(int i=0;i<numberOfNodes;i++){
+    		for(int j=0;j<numberOfNodes;j++){
+    			adj[i][j] =0.0;
+    		}
+    	}
+    	for(Edge e : edges){
+    		Node n1 = e.getFirstNode();
+    		Node n2 = e.getSecondNode();
+    		Double val = e.cost;
+    		adj[n1.index][n2.index] = val;
+    	}
+    	return adj;
+    }
+    
     public void addNode(Node n){
-        nodes.add(n);
+        n.index = index;
+    	nodes.add(n);
         this.numberOfNodes ++;
+        index ++;
     }
-
+    
     public void addAllNodes(List<Node> nodes){
         this.nodes.addAll(nodes);
     }
@@ -186,7 +206,7 @@ public class MyGraph {
 		for(Edge e: edgesMST) {
 			System.out.println(e.node1.toString() + " " + e.node2.id.toString() + " " + e.cost); 
 		}
-		
+		System.out.println("mst!");
         return edgesMST;
     }
     
@@ -445,6 +465,34 @@ public class MyGraph {
 	public void visualize(ArrayList<Edge> edges){
 		DisplayGraph g = new DisplayGraph(edges);
 		g.setVisible(true);
+	}
+	
+	/**
+	 * Traverses the nodes and applies the function passed in
+	 * @param f
+	 */
+	public void traverseNodes(Function f){
+		for(Node n: this.nodes){
+			n.applyFunction(f);
+		}
+	}
+	
+	public Double[][] allPairsShortestPath(){
+		Double [][] adj = this.getAdjMatrix();
+		for(int k = 0 ; k< numberOfNodes; k++){
+			for(int i=0;i<numberOfNodes;i++){
+				for(int j=0;j<numberOfNodes;j++){
+					adj[i][j] = Math.min(adj[i][j], adj[i][k]+adj[k][j]);
+				}
+			}
+		}
+		return adj;
+	}
+
+	@Override
+	public String getValue() {
+		// TODO Auto-generated method stub
+		return this.toString();
 	}
 	
 }
