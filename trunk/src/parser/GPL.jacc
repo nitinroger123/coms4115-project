@@ -4,7 +4,7 @@
   import java.util.*;
   import java.io.*;
   
-  import interpreter.types.Number;
+  import interpreter.types.NumberType;
   import interpreter.types.*;
   import helper.*;
 
@@ -221,7 +221,15 @@
           case ')' : 
                      return token=')';
 		  case '=' : 
-                     return token='=';
+                    /*
+                    lastChar = c;
+                    c = nextChar();
+                    if (c=='=') {
+                        lastChar=32;
+                        return token=EQ;
+                    }
+                    */
+                    return token='=';
           case '>' : 
                      return token='>';
 		  case '<' : 
@@ -399,7 +407,7 @@
         }
         
         if (liner.getReturn()==null) return false;
-        return GPLHelper.isTrue(liner.getReturn().val);
+        return GPLHelper.isTrue(((NumberType)(liner.getReturn().val)).getDouble());
     }
     
 	SemanticWrapper getSemantic() {
@@ -516,7 +524,7 @@ valexpr 	: valexpr '+' valexpr            {$$ = new SemanticWrapper(NumberType.a
 			;
 symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val)); setReturn($$); }
 			| NUMBER 				{$$ = new SemanticWrapper(new NumberType((Double)$1.val)); setReturn($$); }
-			| STRING_LITERAL
+			| STRING_LITERAL        {$$ = new SemanticWrapper(new StringType((String)($1.val)));}
 			;
 
 %%
