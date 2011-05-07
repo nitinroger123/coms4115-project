@@ -186,3 +186,51 @@ s5.print()
 s5 = s4.reverse()
 s5.print()
 
+String s = “hello world!”
+s.print()
+String _foo_bar = "# This string has a # and the string literal has a _ "
+_foo_bar.print()
+
+StringType s1("Welcome to GPL ")
+String s2 = s1.getValue()
+s2.print()
+String s3 = "This string is copied to the old string"
+StringType s4(s3)
+s4.getValue().print()
+s4.print()
+s2 = s4.substring(5)
+s2.print()
+s2 = s4.substring(5,21)
+s2.print()
+s3 = s2.concat("and now concatenated it to another string ")
+s3.print()
+number n1 = s4.find("to")
+n1.print()
+n1 = s4.findLast("String")
+n1.print()
+String s5 = s4.toUpper()
+s5.print()
+s5 = s4.toLower()
+s5.print()
+s5 = s4.reverse()
+s5.print()
+
+
+// To test the Number class
+Number n1 = 10.0
+Number n2(15)
+String s1 = n1.getValue()
+Number n3
+n3 = Number.add(n1,n2)
+print(n3)
+n3 = Numer.subtract(n2,3)
+print(n3)
+print(Number.multiply(2,n2))
+n3 = Multiply.divide(n1,3)
+print(n3)
+print(Number.factorial(3.4))
+n3 = Number.modulo(n1,3)
+print(n3)
+n4 = pow(n1,5)
+print(n4)
+n4 = pow(n1,2.3)
