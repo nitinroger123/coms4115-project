@@ -67,6 +67,9 @@ public class Node implements Type{
         this.adjacentNodes.addAll(otherAdjacentNodes);
     }
 
+    public void removeAdjacentNode(Node other){
+    	this.adjacentNodes.remove(other);
+    }
 
 
     public void setValue(Type value) {
