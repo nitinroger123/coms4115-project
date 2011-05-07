@@ -4,6 +4,7 @@
   import java.util.*;
   import java.io.*;
   
+  import interpreter.types.Number;
   import interpreter.types.*;
   import helper.*;
 
@@ -502,19 +503,19 @@ expr		: ID '.' ID '(' argswrapper ')' {$$ = new SemanticWrapper(invoke((String)(
 			| valexpr                       {$$.val = $1.val;}
 			;
 /* TODO: unary negation operator */
-valexpr 	: valexpr '+' valexpr            {$$ = new SemanticWrapper((Double)($1.val)+(Double)($3.val)); setReturn($$); }
-			| valexpr '-' valexpr            {$$ = new SemanticWrapper((Double)($1.val)-(Double)($3.val)); setReturn($$); }
-			| valexpr '*' valexpr            {$$ = new SemanticWrapper((Double)($1.val)*(Double)($3.val)); setReturn($$); }
-			| valexpr '/' valexpr            {$$ = new SemanticWrapper((Double)($1.val)/(Double)($3.val)); setReturn($$); }
-			| valexpr '^' valexpr            {$$ = new SemanticWrapper(Math.pow((Double)($1.val),(Double)($3.val))); setReturn($$); }
-            | valexpr '%' valexpr            {$$ = new SemanticWrapper((Double)($1.val)%(Double)($3.val)); setReturn($$); }
-            | valexpr '|' valexpr            {$$ = new SemanticWrapper((GPLHelper.isTrue($1.val) ? TRUE : (GPLHelper.isTrue($3.val) ? TRUE : FALSE))); setReturn($$); }
-            | valexpr '&' valexpr            {$$ = new SemanticWrapper((GPLHelper.isTrue($1.val) ? (GPLHelper.isTrue($3.val) ? TRUE : FALSE) : FALSE)); setReturn($$); }
+valexpr 	: valexpr '+' valexpr            {$$ = new SemanticWrapper(NumberType.add((NumberType)($1.val),(NumberType)($3.val))); setReturn($$); }
+			| valexpr '-' valexpr            {$$ = new SemanticWrapper(NumberType.subtract((NumberType)($1.val),(NumberType)($3.val))); setReturn($$); }
+			| valexpr '*' valexpr            {$$ = new SemanticWrapper(NumberType.multiply((NumberType)($1.val),(NumberType)($3.val))); setReturn($$); }
+			| valexpr '/' valexpr            {$$ = new SemanticWrapper(NumberType.divide((NumberType)($1.val),(NumberType)($3.val))); setReturn($$); }
+			| valexpr '^' valexpr            {$$ = new SemanticWrapper(NumberType.pow((NumberType)($1.val),(NumberType)($3.val))); setReturn($$); }
+            | valexpr '%' valexpr            {$$ = new SemanticWrapper(NumberType.modulo((NumberType)($1.val),(NumberType)($3.val))); setReturn($$); }
+            | valexpr '|' valexpr            {$$ = new SemanticWrapper((GPLHelper.isTrue(((NumberType)($1.val)).getDouble()) ? TRUE : (GPLHelper.isTrue(((NumberType)($3.val)).getDouble()) ? TRUE : FALSE))); setReturn($$); }
+            | valexpr '&' valexpr            {$$ = new SemanticWrapper((GPLHelper.isTrue(((NumberType)($1.val)).getDouble()) ? (GPLHelper.isTrue(((NumberType)($3.val)).getDouble()) ? TRUE : FALSE) : FALSE)); setReturn($$); }
 			| '(' valexpr ')'               {$$ = new SemanticWrapper($2.val); setReturn($$); }
 			| symbol				           {$$ = new SemanticWrapper($1.val); setReturn($$); }
 			;
 symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val)); setReturn($$); }
-			| NUMBER 				{$$ = new SemanticWrapper($1.val); setReturn($$); }
+			| NUMBER 				{$$ = new SemanticWrapper(new NumberType((Double)$1.val)); setReturn($$); }
 			| STRING_LITERAL
 			;
 
@@ -592,16 +593,18 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val)
     
     Object toReturn = null;
     try {
-        toReturn = helper.map.get(method).invoke(obj, actualArgs);
+        toReturn = helper.map.get(typeName).get(method).invoke(obj, actualArgs);
     } catch (Exception e) {}
     return toReturn;
   }
   
   private void declare(String type, String name, Object val) {
     if (type.equals("Number")) {
-        scopes.peek().put(name, (Double)val);
+        scopes.peek().put(name, (val==null ? new NumberType() : (NumberType)val));
     } else if (type.equals("Graph")) {
         scopes.peek().put(name, (val==null ? new MyGraph() : (MyGraph)val));
+    } else if (type.equals("String")) {
+        scopes.peek().put(name, (val==null ? new StringType() : (StringType)val));
     }
   }
   
@@ -616,3 +619,4 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val)
   public SemanticWrapper getReturn() {
     return returnVal;
   }
+  

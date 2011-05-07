@@ -1,10 +1,11 @@
-// Output created by jacc on Sat May 07 17:26:45 EDT 2011
+// Output created by jacc on Sat May 07 18:01:37 EDT 2011
 
 package parser;
 
   import java.util.*;
   import java.io.*;
   
+  import interpreter.types.Number;
   import interpreter.types.*;
   import helper.*;
 
@@ -3361,7 +3362,7 @@ class GPLParser implements GPLTokens {
     }
 
     private int yyr55() { // symbol : NUMBER
-        {yyrv = new SemanticWrapper(yysv[yysp-1].val); setReturn(yyrv); }
+        {yyrv = new SemanticWrapper(new NumberType((Double)yysv[yysp-1].val)); setReturn(yyrv); }
         yysv[yysp-=1] = yyrv;
         return 8;
     }
@@ -3372,49 +3373,49 @@ class GPLParser implements GPLTokens {
     }
 
     private int yyr44() { // valexpr : valexpr '+' valexpr
-        {yyrv = new SemanticWrapper((Double)(yysv[yysp-3].val)+(Double)(yysv[yysp-1].val)); setReturn(yyrv); }
+        {yyrv = new SemanticWrapper(NumberType.add((NumberType)(yysv[yysp-3].val),(NumberType)(yysv[yysp-1].val))); setReturn(yyrv); }
         yysv[yysp-=3] = yyrv;
         return yypvalexpr();
     }
 
     private int yyr45() { // valexpr : valexpr '-' valexpr
-        {yyrv = new SemanticWrapper((Double)(yysv[yysp-3].val)-(Double)(yysv[yysp-1].val)); setReturn(yyrv); }
+        {yyrv = new SemanticWrapper(NumberType.subtract((NumberType)(yysv[yysp-3].val),(NumberType)(yysv[yysp-1].val))); setReturn(yyrv); }
         yysv[yysp-=3] = yyrv;
         return yypvalexpr();
     }
 
     private int yyr46() { // valexpr : valexpr '*' valexpr
-        {yyrv = new SemanticWrapper((Double)(yysv[yysp-3].val)*(Double)(yysv[yysp-1].val)); setReturn(yyrv); }
+        {yyrv = new SemanticWrapper(NumberType.multiply((NumberType)(yysv[yysp-3].val),(NumberType)(yysv[yysp-1].val))); setReturn(yyrv); }
         yysv[yysp-=3] = yyrv;
         return yypvalexpr();
     }
 
     private int yyr47() { // valexpr : valexpr '/' valexpr
-        {yyrv = new SemanticWrapper((Double)(yysv[yysp-3].val)/(Double)(yysv[yysp-1].val)); setReturn(yyrv); }
+        {yyrv = new SemanticWrapper(NumberType.divide((NumberType)(yysv[yysp-3].val),(NumberType)(yysv[yysp-1].val))); setReturn(yyrv); }
         yysv[yysp-=3] = yyrv;
         return yypvalexpr();
     }
 
     private int yyr48() { // valexpr : valexpr '^' valexpr
-        {yyrv = new SemanticWrapper(Math.pow((Double)(yysv[yysp-3].val),(Double)(yysv[yysp-1].val))); setReturn(yyrv); }
+        {yyrv = new SemanticWrapper(NumberType.pow((NumberType)(yysv[yysp-3].val),(NumberType)(yysv[yysp-1].val))); setReturn(yyrv); }
         yysv[yysp-=3] = yyrv;
         return yypvalexpr();
     }
 
     private int yyr49() { // valexpr : valexpr '%' valexpr
-        {yyrv = new SemanticWrapper((Double)(yysv[yysp-3].val)%(Double)(yysv[yysp-1].val)); setReturn(yyrv); }
+        {yyrv = new SemanticWrapper(NumberType.modulo((NumberType)(yysv[yysp-3].val),(NumberType)(yysv[yysp-1].val))); setReturn(yyrv); }
         yysv[yysp-=3] = yyrv;
         return yypvalexpr();
     }
 
     private int yyr50() { // valexpr : valexpr '|' valexpr
-        {yyrv = new SemanticWrapper((GPLHelper.isTrue(yysv[yysp-3].val) ? TRUE : (GPLHelper.isTrue(yysv[yysp-1].val) ? TRUE : FALSE))); setReturn(yyrv); }
+        {yyrv = new SemanticWrapper((GPLHelper.isTrue(((NumberType)(yysv[yysp-3].val)).getDouble()) ? TRUE : (GPLHelper.isTrue(((NumberType)(yysv[yysp-1].val)).getDouble()) ? TRUE : FALSE))); setReturn(yyrv); }
         yysv[yysp-=3] = yyrv;
         return yypvalexpr();
     }
 
     private int yyr51() { // valexpr : valexpr '&' valexpr
-        {yyrv = new SemanticWrapper((GPLHelper.isTrue(yysv[yysp-3].val) ? (GPLHelper.isTrue(yysv[yysp-1].val) ? TRUE : FALSE) : FALSE)); setReturn(yyrv); }
+        {yyrv = new SemanticWrapper((GPLHelper.isTrue(((NumberType)(yysv[yysp-3].val)).getDouble()) ? (GPLHelper.isTrue(((NumberType)(yysv[yysp-1].val)).getDouble()) ? TRUE : FALSE) : FALSE)); setReturn(yyrv); }
         yysv[yysp-=3] = yyrv;
         return yypvalexpr();
     }
@@ -3522,16 +3523,18 @@ class GPLParser implements GPLTokens {
     
     Object toReturn = null;
     try {
-        toReturn = helper.map.get(method).invoke(obj, actualArgs);
+        toReturn = helper.map.get(typeName).get(method).invoke(obj, actualArgs);
     } catch (Exception e) {}
     return toReturn;
   }
   
   private void declare(String type, String name, Object val) {
     if (type.equals("Number")) {
-        scopes.peek().put(name, (Double)val);
+        scopes.peek().put(name, (val==null ? new NumberType() : (NumberType)val));
     } else if (type.equals("Graph")) {
         scopes.peek().put(name, (val==null ? new MyGraph() : (MyGraph)val));
+    } else if (type.equals("String")) {
+        scopes.peek().put(name, (val==null ? new StringType() : (StringType)val));
     }
   }
   
@@ -3546,5 +3549,6 @@ class GPLParser implements GPLTokens {
   public SemanticWrapper getReturn() {
     return returnVal;
   }
+  
 
 }
