@@ -1,26 +1,15 @@
-Graph a
-print(a)
+Number a=2
 
-print("")
-Number i = 2
-Number k = 0
-if(k)
-    print("yo")
-else
-    print("neither")
-end
+while (a)
 
-while (i)
-    i=i-1
-    print("==================")
-    if(k)
-        print("yo")
-        k = k-1
+    print("inside")
+    
+    if(1)
+        print("one")
     else
-        print("neither2")
+        print("other")
     end
     
-    print("-----------------")
+    a = a - 1
+    
 end
-
-print("")
