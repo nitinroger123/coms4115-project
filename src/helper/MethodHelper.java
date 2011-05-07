@@ -1,6 +1,7 @@
 package helper;
 
-import interpreter.types.MyGraph;
+import interpreter.types.*;
+import interpreter.types.Number;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
@@ -10,18 +11,34 @@ import java.util.HashMap;
  *
  */
 public class MethodHelper {
-	public HashMap<String, Method> map = new HashMap<String, Method>();
+	public HashMap<Object,HashMap<String,Method>> map = new HashMap<Object, HashMap<String,Method>>();
 	
 	public MethodHelper(){
 		init();
 	}
 	
 	public void init(){
+		HashMap<String, Method> graphMap = new HashMap<String, Method>();
+		HashMap<String, Method> numMap = new HashMap<String, Method>();
+		HashMap<String, Method> strMap = new HashMap<String, Method>();
 		MyGraph g = new MyGraph();
-		Method methods [] = g.getClass().getMethods();
-		for(int i=0;i<methods.length;i++){
-			map.put(methods[i].getName(), methods[i]);
+		Number n = new Number();
+		StringType str = new StringType();
+		Method graphMethods [] = g.getClass().getMethods();
+		for(int i=0;i<graphMethods.length;i++){
+			graphMap.put(graphMethods[i].getName(), graphMethods[i]);
 		}
+		Method [] numberMethods = n.getClass().getMethods();
+		for(int i=0; i< numberMethods.length;i++ ){
+			numMap.put(numberMethods[i].getName(), numberMethods[i]);
+		}
+		Method [] strMethods = n.getClass().getMethods();
+		for(int i=0; i< strMethods.length;i++ ){
+			strMap.put(strMethods[i].getName(), strMethods[i]);
+		}
+		map.put(g, graphMap);
+		map.put(n, numMap);
+		map.put(str,strMap);
 	}
 	
 	/*

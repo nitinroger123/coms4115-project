@@ -140,6 +140,13 @@ public class MyGraphTest {
         testGraph.addEdge(e);
         e = new Edge(n5, n4, new Number(1.0));
         testGraph.addEdge(e);
+        Double [][] adj = testGraph.getAdjMatrix();
+        for(int i=0;i<testGraph.getNumberOfNodes();i++){
+        	for(int j=0;j<testGraph.getNumberOfEdges();j++){
+        		System.out.print(adj[i][j]+" ");
+        	}
+        	System.out.println();
+        }
         testGraph.visualize();
     }
 
