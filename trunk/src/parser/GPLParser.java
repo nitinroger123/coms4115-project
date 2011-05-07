@@ -5,7 +5,7 @@ package parser;
   import java.util.*;
   import java.io.*;
   
-  import interpreter.types.Number;
+  import interpreter.types.NumberType;
   import interpreter.types.*;
   import helper.*;
 
