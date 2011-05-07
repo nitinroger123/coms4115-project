@@ -1,0 +1,26 @@
+Graph a
+print(a)
+
+print("")
+Number i = 2
+k = 0
+if(k)
+    print("yo")
+else
+    print("neither")
+end
+
+while (i)
+    i=i-1
+    print("==================")
+    if(k)
+        print("yo")
+        k = k-1
+    else
+        print("neither2")
+    end
+    
+    print("-----------------")
+end
+
+print("")
