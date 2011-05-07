@@ -1,4 +1,4 @@
-// Output created by jacc on Sat May 07 19:07:25 EDT 2011
+// Output created by jacc on Sat May 07 19:48:10 EDT 2011
 
 package parser;
 
@@ -160,6 +160,8 @@ package parser;
             }
         } else if (last.equals(else_token)) {
             scopes.push(new HashMap<String, Object>());
+        } else {
+            blockTypes.pop();
         }
         
         return nextToken();
@@ -287,6 +289,13 @@ package parser;
                 } else {
                     return skip();
                 }
+            } else if (s.equals("elsif")) {
+                scopes.pop();
+                return skip();
+            } else if (s.equals("else")) {
+                
+                scopes.pop();
+                return skip();
             } else if (s.equals("while")) {
                 blockTypes.push(1);
                 String cond = getLine();
@@ -328,6 +337,8 @@ package parser;
                     //System.out.println("First noticed end..." + recordLow + "," + recordCap);
                     
                     while (eval(cond)) {
+                        
+                    
                         recordLow = whileBodies.size();
                         recordCap = whileBodies.size();
                         
@@ -375,13 +386,12 @@ package parser;
     */
     private boolean eval(String code, boolean interactive) {
     
-        /*
+        
         System.out.println("---------------- Eval: --------------");
         System.out.println(code);
         System.out.println("-------------------------------------");
-        System.out.println("Current scope: " + scopes.peek());
-        System.out.println("Current scope depth: " + scopes.size());
-        */
+        
+        
         
         inputs.push(new StringReader(code));
         
@@ -3513,7 +3523,8 @@ class GPLParser implements GPLTokens {
     if (declared) {
         scopes.get(index).put(name, val);
     } else {
-        scopes.peek().put(name, val);
+        System.out.println("Undeclared variable name: " + name);
+        System.exit(1);
     }
     
   }
