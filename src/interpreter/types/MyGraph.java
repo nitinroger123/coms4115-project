@@ -49,6 +49,17 @@ public class MyGraph implements Type{
     	return adj;
     }
     
+    public MyGraph(MyGraph other){
+    	this.nodes = other.nodes;
+    	this.edges = other.edges;
+    	this.numberOfNodes = nodes.size();
+    	this.numberOfEdges = edges.size();
+    }
+    
+    public void replaceEdgeSet(List<Edge> newSet){
+    	
+    }
+    
     public void addNode(Node n){
         n.index = index;
     	nodes.add(n);
@@ -65,6 +76,13 @@ public class MyGraph implements Type{
         e.getFirstNode().addAdjacentNode(e.getSecondNode());
         e.getSecondNode().addAdjacentNode(e.getFirstNode());
         this.numberOfEdges ++;
+    }
+    
+    public void removeEdge(Edge e){
+    	edges.remove(e);
+    	e.getFirstNode().removeAdjacentNode(e.getSecondNode());
+    	e.getSecondNode().removeAdjacentNode(e.getFirstNode());
+    	this.numberOfEdges--;
     }
 
     public void addAllEdges(List<Edge> edges){
@@ -255,6 +273,10 @@ public class MyGraph implements Type{
                 return e;
         }
         return null;
+    }
+    
+    public ArrayList<Edge> getEdgeList(){
+    	return (ArrayList<Edge>)edges;
     }
     
     /**
@@ -458,12 +480,17 @@ public class MyGraph implements Type{
 	 * method to display the graph 
 	 */
 	public void visualize(){
-		DisplayGraph g = new DisplayGraph(new ArrayList<Edge>(this.edges));
+		DisplayGraph g = new DisplayGraph(this);
 		g.setVisible(true);
 	}
 	
-	public void visualize(ArrayList<Edge> edges){
-		DisplayGraph g = new DisplayGraph(edges);
+	public void visualize(ArrayList<Edge> specificEdges){
+		MyGraph temp = new MyGraph(this);
+		while(temp.edges.size() != 0){
+			temp.removeEdge(temp.edges.get(temp.getNumberOfEdges()-1));
+		}
+		temp.addAllEdges(specificEdges);
+		DisplayGraph g = new DisplayGraph(temp);
 		g.setVisible(true);
 	}
 	
