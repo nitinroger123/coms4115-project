@@ -69,6 +69,7 @@ public class MyGraph implements Type{
     
     public void addAllNodes(List<Node> nodes){
         this.nodes.addAll(nodes);
+        numberOfNodes += nodes.size();
     }
 
     public void addEdge(Edge e){
@@ -293,6 +294,7 @@ public class MyGraph implements Type{
         Node head = new Node(start.getContents());
         head.setParent(null); 
         stack.add(start);
+        graph.addNode(start);
         dfsStack.add(head);
         Node temp, childNode;
         Edge e;

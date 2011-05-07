@@ -2,10 +2,8 @@ package interpreter;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import interpreter.types.Edge;
-import interpreter.types.MyGraph;
-import interpreter.types.Node;
-import interpreter.types.NumberType;
+import java.util.Arrays;
+
 import interpreter.types.*;
 import org.junit.After;
 import org.junit.Before;
@@ -39,19 +37,19 @@ public class MyGraphTest {
     // TODO Change this graph to be a generic graph which can be a test case for all the graph methods,
    
     private MyGraph getTestGraph() {
-/*        MyGraph myGraph = new MyGraph();
+        MyGraph myGraph = new MyGraph();
         Node[] arr = new Node[] {
-                new Node(new Number(1)), new Node(new Number(2)), new Node(new Number(3)), new Node(new Number(4)),
-                new Node(new Number(5)), new Node(new Number(6)), new Node(new Number(7)) 
+                new Node(new NumberType(1)), new Node(new NumberType(2)), new Node(new NumberType(3)), new Node(new NumberType(4)),
+                new Node(new NumberType(5)), new Node(new NumberType(6)) 
         };
         Edge[] arrEdge = new Edge[] {
-                new Edge(arr[0], arr[1], null), new Edge(arr[0], arr[2], null), new Edge(arr[0], arr[4], null), 
-                new Edge(arr[1], arr[3], null), new Edge(arr[5], arr[1], null), new Edge(arr[2], arr[6], null), 
-                new Edge(arr[4], arr[5], null) 
+                new Edge(arr[0], arr[1], 1.0), new Edge(arr[0], arr[4], 3.0), new Edge(arr[0], arr[3], 4.0), 
+                new Edge(arr[1], arr[3], 4.0), new Edge(arr[1], arr[4], 2.0), new Edge(arr[2], arr[4], 4.0), 
+                new Edge(arr[2], arr[5], 5.0), new Edge(arr[3], arr[4], 4.0), new Edge(arr[4], arr[5], 7.0) 
         };
         myGraph.addAllNodes(Arrays.asList(arr));
-        myGraph.addAllEdges(Arrays.asList(arrEdge));*/
-        return null;
+        myGraph.addAllEdges(Arrays.asList(arrEdge));
+        return myGraph;
     }
     
     @Before
@@ -132,8 +130,10 @@ public class MyGraphTest {
     public void testDfs() {
         MyGraph graph = getTestGraph();
         Node start = graph.getNode(0);
-        Node end = graph.getNode(3);
-        graph.dfs(start, end);
+        Node end = graph.getNode(2);
+        graph = graph.dfs(start, end);
+        String expected = "1.0 4.0 5.0 6.0 3.0 ";
+        assertEquals(expected, graph.printNodes());
     }
     
     @Test
