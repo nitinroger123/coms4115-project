@@ -28,7 +28,7 @@ public class MethodHelper {
 		for(int i=0;i<graphMethods.length;i++){
 			graphMap.put(graphMethods[i].getName(), graphMethods[i]);
 		}
-		Method [] numberMethods = n.getClass().getMethods();
+		Method [] numberMethods = str.getClass().getMethods();
 		for(int i=0; i< numberMethods.length;i++ ){
 			numMap.put(numberMethods[i].getName(), numberMethods[i]);
 		}
@@ -41,10 +41,12 @@ public class MethodHelper {
 		map.put(str.getClass().toString(),strMap);
 	}
 	
-	/*
-	public static void main(String args []) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException{
+	
+	public static void main(String args []) throws IllegalArgumentException, IllegalAccessException{
 		MyGraph g = new MyGraph();
+		StringType s = new StringType();
+		NumberType n = new NumberType();
 		MethodHelper m = new MethodHelper();
-		m.init();
-	}*/
+		System.out.println(m.map.get(n.getClass().toString()).toString());
+	}
 }
