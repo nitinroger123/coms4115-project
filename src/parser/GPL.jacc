@@ -633,8 +633,8 @@ defargswrapper 	: defargs
 args 	: expr ',' args                     {((ArrayList<Object>)$$.val).add(0,$1.val);}
 		| expr                              {$$ = new SemanticWrapper(new ArrayList<Object>()); ((ArrayList<Object>)($$.val)).add($1.val);}
 		;
-argswrapper 	: args
-				| /* empty */
+argswrapper 	: args                      {$$ = $1;}
+				| /* empty */               {$$ = new SemanticWrapper(null);}
 				;
 declaration : TYPE ID '=' expr              {declare((String)$1.val,(String)$2.val,$4.val);}
 			| TYPE ID                       {declare((String)$1.val,(String)$2.val,null);}
@@ -643,7 +643,7 @@ assignment	: ID '=' expr                   {modify((String)$1.val, $3.val); setR
 			;
 
 /* get rid of the char strings */
-expr		: ID '.' ID '(' argswrapper ')' {$$ = new SemanticWrapper(invoke((String)($1.val), (String)($3.val), (ArrayList<Object>)($5.val)));}
+expr		: ID '.' ID '(' argswrapper ')' {$$ = new SemanticWrapper(invoke((String)($1.val), (String)($3.val), ( $5.val==null ? null : (ArrayList<Object>)($5.val) )));}
 			| ID '(' argswrapper ')'
 			| valexpr                       {$$.val = $1.val;}
 			;
@@ -731,27 +731,35 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val)
   }
   
   private Object invoke(String name, String method, ArrayList<Object> args) {
+  
     Object obj = lookup(name);
     String typeName = obj.getClass().toString();
     
     MethodHelper helper = new MethodHelper();
-    Object[] actualArgs = args.toArray();
+    
+    Object[] actualArgs = null;
+    
+    if (args!=null) {
+        actualArgs = args.toArray();
+    }
     
     Object toReturn = null;
     
+    
     try {
-        Class[] types = helper.map.get(typeName).get(method).getParameterTypes();
-        if (types.length!=actualArgs.length) {
-            System.out.println("Wrong number of parameters for method: " + method);
-            System.exit(1);
+        if (actualArgs!=null) {
+            Class[] types = helper.map.get(typeName).get(method).getParameterTypes();
+            if (types.length!=actualArgs.length) {
+                System.out.println("Wrong number of parameters for method: " + method);
+                System.exit(1);
+            }
+            for (int i = 0; i < actualArgs.length; i++) {
+                actualArgs[i] = types[i].cast(actualArgs[i]);
+            }
+            toReturn = helper.map.get(typeName).get(method).invoke(obj, actualArgs);
+        } else {
+            toReturn = helper.map.get(typeName).get(method).invoke(obj, new Object[0]);
         }
-        
-        for (int i = 0; i < actualArgs.length; i++) {
-            actualArgs[i] = types[i].cast(actualArgs[i]);
-        }
-        
-        toReturn = helper.map.get(typeName).get(method).invoke(obj, actualArgs);
-        
     } catch (Exception e) {
         System.out.println(e);
         System.out.println("Unknown method name: " + method);
