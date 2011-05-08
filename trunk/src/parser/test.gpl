@@ -1,6 +1,3 @@
+Graph a = [ 1,2,3,4]
 
-String a = "asd"
 print(a)
-
-
-print(a.toUpper())

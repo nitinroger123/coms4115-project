@@ -1,4 +1,4 @@
-// Output created by jacc on Sun May 08 13:22:42 EDT 2011
+// Output created by jacc on Sun May 08 14:42:50 EDT 2011
 
 package parser;
 
@@ -37,6 +37,8 @@ interface GPLTokens {
     // '<' (code=60)
     // '=' (code=61)
     // '>' (code=62)
+    // '[' (code=91)
+    // ']' (code=93)
     // '^' (code=94)
     // '|' (code=124)
 }

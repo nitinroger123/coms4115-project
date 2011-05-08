@@ -36,7 +36,7 @@ public class DisplayGraph extends JFrame {
 			x[i] = g.getNode(i).x;
 			y[i] = g.getNode(i).y;
 		}
-//		double[][] dist = g.allPairsSP();
+//		double[][] dist = g.allPairsShortestPath();
 //		int max = 0;
 //		for(int i = 0; i < n; i++){
 //			for(int j = 0; j < n; j++){
@@ -75,8 +75,9 @@ public class DisplayGraph extends JFrame {
 //		}
 //		double[] velX = double[n];
 //		double[] velY = double[n];
+//		double forceConst = 
 //		for(int i = 0; i < n; i++){
-//			
+//			velX[i] = velX[i] + delEx[i]
 //		}
 	}
 }
