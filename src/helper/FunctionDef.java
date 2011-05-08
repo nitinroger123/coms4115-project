@@ -1,7 +1,11 @@
 package helper;
 
 import java.util.ArrayList;
-
+/**
+ * Helper class. Used for temp storage.
+ * @author nitin
+ *
+ */
 public class FunctionDef {
 	public String name;
 	public String code;
