@@ -1,4 +1,4 @@
-// Output created by jacc on Sun May 08 13:00:00 EDT 2011
+// Output created by jacc on Sun May 08 13:22:41 EDT 2011
 
 package parser;
 
@@ -3285,11 +3285,14 @@ class GPLParser implements GPLTokens {
     }
 
     private int yyr36() { // argswrapper : args
-        yysp -= 1;
+        {yyrv = yysv[yysp-1];}
+        yysv[yysp-=1] = yyrv;
         return yypargswrapper();
     }
 
     private int yyr37() { // argswrapper : /* empty */
+        {yyrv = new SemanticWrapper(null);}
+        yysv[yysp-=0] = yyrv;
         return yypargswrapper();
     }
 
@@ -3392,7 +3395,7 @@ class GPLParser implements GPLTokens {
     }
 
     private int yyr41() { // expr : ID '.' ID '(' argswrapper ')'
-        {yyrv = new SemanticWrapper(invoke((String)(yysv[yysp-6].val), (String)(yysv[yysp-4].val), (ArrayList<Object>)(yysv[yysp-2].val)));}
+        {yyrv = new SemanticWrapper(invoke((String)(yysv[yysp-6].val), (String)(yysv[yysp-4].val), ( yysv[yysp-2].val==null ? null : (ArrayList<Object>)(yysv[yysp-2].val) )));}
         yysv[yysp-=6] = yyrv;
         return yypexpr();
     }
@@ -3662,32 +3665,35 @@ class GPLParser implements GPLTokens {
   }
   
   private Object invoke(String name, String method, ArrayList<Object> args) {
+  
     Object obj = lookup(name);
     String typeName = obj.getClass().toString();
     
     MethodHelper helper = new MethodHelper();
-    Object[] actualArgs = args.toArray();
+    
+    Object[] actualArgs = null;
+    
+    if (args!=null) {
+        actualArgs = args.toArray();
+    }
     
     Object toReturn = null;
     
     
-    System.out.println();
-    
-    
     try {
-        Class[] types = helper.map.get(typeName).get(method).getParameterTypes();
-        if (types.length!=actualArgs.length) {
-            System.out.println("Wrong number of parameters for method: " + method);
+        if (actualArgs!=null) {
+            Class[] types = helper.map.get(typeName).get(method).getParameterTypes();
+            if (types.length!=actualArgs.length) {
+                System.out.println("Wrong number of parameters for method: " + method);
+                System.exit(1);
+            }
+            for (int i = 0; i < actualArgs.length; i++) {
+                actualArgs[i] = types[i].cast(actualArgs[i]);
+            }
+            toReturn = helper.map.get(typeName).get(method).invoke(obj, actualArgs);
+        } else {
+            toReturn = helper.map.get(typeName).get(method).invoke(obj, new Object[0]);
         }
-        
-        for (int i = 0; i < actualArgs.length; i++) {
-            System.out.println(actualArgs[i]);
-            System.out.println(types[i]);
-            actualArgs[i] = types[i].cast(actualArgs[i]);
-        }
-        
-        toReturn = helper.map.get(typeName).get(method).invoke(obj, actualArgs);
-        
     } catch (Exception e) {
         System.out.println(e);
         System.out.println("Unknown method name: " + method);

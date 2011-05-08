@@ -2,6 +2,5 @@
 String a = "asd"
 print(a)
 
-String b = a.concat("fae")
 
-print(b)
+print(a.toUpper())
