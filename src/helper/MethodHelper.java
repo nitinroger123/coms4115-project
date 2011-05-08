@@ -28,11 +28,11 @@ public class MethodHelper {
 		for(int i=0;i<graphMethods.length;i++){
 			graphMap.put(graphMethods[i].getName(), graphMethods[i]);
 		}
-		Method [] numberMethods = str.getClass().getMethods();
+		Method [] numberMethods = n.getClass().getMethods();
 		for(int i=0; i< numberMethods.length;i++ ){
 			numMap.put(numberMethods[i].getName(), numberMethods[i]);
 		}
-		Method [] strMethods = n.getClass().getMethods();
+		Method [] strMethods = str.getClass().getMethods();
 		for(int i=0; i< strMethods.length;i++ ){
 			strMap.put(strMethods[i].getName(), strMethods[i]);
 		}
@@ -47,6 +47,6 @@ public class MethodHelper {
 		StringType s = new StringType();
 		NumberType n = new NumberType();
 		MethodHelper m = new MethodHelper();
-		System.out.println(m.map.get(n.getClass().toString()).toString());
+		System.out.println(m.map.get(s.getClass().toString()).toString());
 	}
 }
