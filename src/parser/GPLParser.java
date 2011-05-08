@@ -1,4 +1,4 @@
-// Output created by jacc on Sat May 07 19:48:10 EDT 2011
+// Output created by jacc on Sun May 08 13:00:00 EDT 2011
 
 package parser;
 
@@ -32,6 +32,8 @@ package parser;
         private int lastChar = 32;
     private int token;
     private SemanticWrapper yylval;
+    private boolean toSkip = false;
+    private int skipCounter = 0;
     
     //This tells the lexer to start recording the character stream (used for backtracking)
     private boolean record = false;
@@ -74,6 +76,7 @@ package parser;
                     whileBodies.set(i, whileBodies.get(i) + (char)c);
                 }
             }
+            //if (!toSkip) System.out.println(((char)c=='\n' ? "NL" : (char)c) + " : " + c);
             return c;
         } catch (Exception e) {
             return -1;
@@ -108,62 +111,8 @@ package parser;
     
     //Skip to the next elsif, else, or end
     private int skip() {
-        Reader stream = inputs.peek();
-        
-        StreamTokenizer t = new StreamTokenizer(stream);
-        t.quoteChar((int)('"'));
-        t.commentChar((int)('#'));
-        t.parseNumbers();
-        t.wordChars('_', '_');
-        t.eolIsSignificant(true);
-        
-        int counter = 1;
-        String if_token = "if";
-        String def_token = "def";
-        String while_token = "while";
-        String elsif_token = "elsif";
-        String else_token = "else";
-        String end_token = "end";
-        String last = "";
-        try {
-            while(counter!=0) {
-                if (t.nextToken()!=StreamTokenizer.TT_WORD) continue;
-                //System.out.println("Current token is: " + t.sval);
-                
-                if (if_token.equals(t.sval)) {
-                    counter++;
-                } else if (elsif_token.equals(t.sval) && counter==1) {
-                    last=elsif_token; counter--;
-                } else if (else_token.equals(t.sval) && counter==1) {
-                    last=else_token; counter--;
-                } else if (def_token.equals(t.sval)) {
-                    counter++;
-                } else if (end_token.equals(t.sval)) {
-                    last=end_token; counter--;
-                }
-                //TODO: handle no-end error. Watch for end of stream here
-            }
-        } catch (Exception e) {
-            //Do nothing
-        }
-        
-        if (last.equals(elsif_token)) {
-            String restOfLine = getLine();
-            nextToken();
-            boolean decision = eval(restOfLine);
-            
-            if (decision) {
-                scopes.push(new HashMap<String, Object>());
-                return nextToken();
-            } else {
-                return skip();
-            }
-        } else if (last.equals(else_token)) {
-            scopes.push(new HashMap<String, Object>());
-        } else {
-            blockTypes.pop();
-        }
-        
+        toSkip = true;
+        skipCounter=0;
         return nextToken();
     }
     
@@ -172,6 +121,7 @@ package parser;
      */
     public int nextToken() {
     
+        //System.out.println("Tokening...");
             int c = lastChar;
         s="";
         
@@ -183,48 +133,103 @@ package parser;
             lastChar = '\n';
             return nextToken();
         }
-        
         if (inLiteral) {
             while (c!='"') {
                 s += Character.toString((char)c);
                 c = nextChar();
             }
             inLiteral = false;
-            yylval = new SemanticWrapper(s.substring(1,s.length()));
-            return token=STRING_LITERAL;
+            if (!toSkip) {
+                yylval = new SemanticWrapper(s.substring(1,s.length()));
+                return token=STRING_LITERAL;
+            } else {
+                return nextToken();
+            }
         }
-        
                 while (c==32 || c==11 || c==13 || c=='\t') {
                         c=nextChar();
                 }
-            
-                if (c<0) return (token=ENDINPUT);
-                
-        String newline = "\n";
-        if (c == newline.charAt(0)) {
-            return token=NL;
+                if (c<0) {
+            return (token=ENDINPUT);
+        }
+        if (c == '\n') {
+            if (!toSkip) {
+                return token=NL;
+            } else {
+                return nextToken();
+            }
         }
         
         lastChar=32;
+
+
         
                 //Take care of all the special one-character tokens
                 switch (c) {
           case '+' : 
-                     return token='+';
+                { 
+                    if (!toSkip) {
+                        return token='+';
+                    } else {
+                        return nextToken();
+                    }
+                }
           case '-' : 
-                     return token='-';
+                { 
+                    if (!toSkip) {
+                        return token='-';
+                    } else {
+                        return nextToken();
+                    }
+                }
           case '*' : 
-                     return token='*';
+                { 
+                    if (!toSkip) {
+                        return token='*';
+                    } else {
+                        return nextToken();
+                    }
+                }
           case '/' : 
-                     return token='/';
+                { 
+                    if (!toSkip) {
+                        return token='/';
+                    } else {
+                        return nextToken();
+                    }
+                }
           case '%' : 
-                     return token='%';
+                { 
+                    if (!toSkip) {
+                        return token='%';
+                    } else {
+                        return nextToken();
+                    }
+                }
           case '^' : 
-                     return token='^';
+                { 
+                    if (!toSkip) {
+                        return token='^';
+                    } else {
+                        return nextToken();
+                    }
+                }
                   case '(' : 
-                     return token='(';
+                { 
+                    if (!toSkip) {
+                        return token='(';
+                    } else {
+                        return nextToken();
+                    }
+                }
           case ')' : 
-                     return token=')';
+                { 
+                    if (!toSkip) {
+                        return token=')';
+                    } else {
+                        return nextToken();
+                    }
+                }
                   case '=' : 
                     /*
                     lastChar = c;
@@ -234,21 +239,69 @@ package parser;
                         return token=EQ;
                     }
                     */
-                    return token='=';
+                { 
+                    if (!toSkip) {
+                        return token='=';
+                    } else {
+                        return nextToken();
+                    }
+                }
           case '>' : 
-                     return token='>';
+                { 
+                    if (!toSkip) {
+                        return token='>';
+                    } else {
+                        return nextToken();
+                    }
+                }
                   case '<' : 
-                     return token='<';
+                { 
+                    if (!toSkip) {
+                        return token='<';
+                    } else {
+                        return nextToken();
+                    }
+                }
           case ',' : 
-                     return token=',';
+                { 
+                    if (!toSkip) {
+                        return token=',';
+                    } else {
+                        return nextToken();
+                    }
+                }
                   case '.' : 
-                     return token='.';
+                { 
+                    if (!toSkip) {
+                        return token='.';
+                    } else {
+                        return nextToken();
+                    }
+                }
                   case '!' : 
-                     return token='!';
+                { 
+                    if (!toSkip) {
+                        return token='!';
+                    } else {
+                        return nextToken();
+                    }
+                }
                   case '&' : 
-                     return token='&';
+                { 
+                    if (!toSkip) {
+                        return token='&';
+                    } else {
+                        return nextToken();
+                    }
+                }
           case '|' :
-                     return token='|';
+                { 
+                    if (!toSkip) {
+                        return token='|';
+                    } else {
+                        return nextToken();
+                    }
+                }
           case '"' :
                      {inLiteral = true; return nextToken();}
           case '#' :
@@ -266,99 +319,177 @@ package parser;
         lastChar = c;
         
             if (s.matches("([+-]?[0-9]*\\.[0-9]+)|([+-]?[0-9]+)")) {
-                yylval = new SemanticWrapper(Double.parseDouble(s));
-                return token=NUMBER;
-            } else if (s.equals("Number")||s.equals("Graph")||s.equals("String")||s.equals("Function")) {
-                yylval = new SemanticWrapper(s);
-                return token=TYPE;
-            } else if (s.equals("print")) {
-                return token=PRINT;
-            } else if (s.equals("include")) {
-                return token=INCLUDE;
-            } else if (s.equals("def")) {
-                scopes.push(new HashMap<String, Object>());
-                return token=DEF;
-            } else if (s.equals("if")) {
-                
-                blockTypes.push(0);
-                boolean decision = eval(getLine());
-                
-                if (decision) {
-                    scopes.push(new HashMap<String, Object>());
-                    return nextToken();
+                if (!toSkip) {
+                    yylval = new SemanticWrapper(new NumberType(Double.parseDouble(s)));
+                    return token=NUMBER;
                 } else {
-                    return skip();
+                    return nextToken();
                 }
-            } else if (s.equals("elsif")) {
-                scopes.pop();
-                return skip();
-            } else if (s.equals("else")) {
-                
-                scopes.pop();
-                return skip();
-            } else if (s.equals("while")) {
-                blockTypes.push(1);
-                String cond = getLine();
-                boolean decision = eval(cond);
-                
-                if (decision) {
-                    if (!record) record = true;
-                    whileBodies.push("");
-                    whileConditions.push(cond);
-                    
-                    scopes.push(new HashMap<String, Object>());
-                    recordCap++;
-                    
-                    //System.out.println("Noticed while..." + recordLow + "," + recordCap);
-                    
-                    return nextToken();
+            } else if (s.equals("Number")||s.equals("Graph")||s.equals("String")||s.equals("Function")) {
+                if (!toSkip) {
+                    yylval = new SemanticWrapper(s);
+                    return token=TYPE;
                 } else {
+                    return nextToken();
+                }
+            } else if (s.equals("print")) {
+                //System.out.println("Reached print!");
+                if (!toSkip) {
+                    return token=PRINT;
+                } else {
+                    return nextToken();
+                }
+            } else if (s.equals("include")) {
+                if (!toSkip) {
+                    return token=INCLUDE;
+                } else {
+                    return nextToken();
+                }
+            } else if (s.equals("def")) {
+                if (!toSkip) {
+                    scopes.push(new HashMap<String, Object>());
+                    return token=DEF;
+                } else {
+                    skipCounter++;
+                    return nextToken();
+                }
+            } else if (s.equals("if")) {
+                //System.out.println("reached if!");
+            
+                if (!toSkip) {
+                    blockTypes.push(0);
+                    boolean decision = eval(getLine());
+                    
+                    if (decision) {
+                        scopes.push(new HashMap<String, Object>());
+                        return nextToken();
+                    } else {
+                        return skip();
+                    }
+                } else {
+                    skipCounter++;
+                    return nextToken();
+                }
+                
+            } else if (s.equals("elsif")) {
+                if (!toSkip) {
+                    scopes.pop();
                     return skip();
+                    
+                } else {
+                    if (skipCounter>0) {
+                        return nextToken();
+                    }
+                    String restOfLine = getLine();
+                    nextToken();
+                    boolean decision = eval(restOfLine);
+                    
+                    if (decision) {
+                        scopes.push(new HashMap<String, Object>());
+                        return nextToken();
+                    } else {
+                        return skip();
+                    }
+                }
+            } else if (s.equals("else")) {
+                if (!toSkip) {
+                    scopes.pop();
+                    return skip();
+                } else {
+                    if (skipCounter>0) {
+                        return nextToken();
+                    }
+                    toSkip=false;
+                    scopes.push(new HashMap<String, Object>());
+                    return nextToken();
+                }
+            } else if (s.equals("while")) {
+            
+                if (!toSkip) {
+                    blockTypes.push(1);
+                    String cond = getLine();
+                    boolean decision = eval(cond);
+                    
+                    if (decision) {
+                        if (!record) record = true;
+                        whileBodies.push("");
+                        whileConditions.push(cond);
+                        
+                        scopes.push(new HashMap<String, Object>());
+                        recordCap++;
+                        
+                        //System.out.println("Noticed while..." + recordLow + "," + recordCap);
+                        
+                        return nextToken();
+                    } else {
+                        return skip();
+                    }
+                } else {
+                    skipCounter++;
+                    return nextToken();
                 }
             } else if (s.equals("next")) {
-                scopes.pop();
-                return token=NEXT;
+                if (!toSkip) {
+                    scopes.pop();
+                    return token=NEXT;
+                } else {
+                    return nextToken();
+                }
             } else if (s.equals("last")) {
-                scopes.pop();
-                return token=LAST;
+                if (!toSkip) {
+                    scopes.pop();
+                    return token=LAST;
+                } else {
+                    return nextToken();
+                }
+                
             } else if (s.equals("end")) {
-            
-                //This is the end tag for a while loop
-                if (blockTypes.peek()==1) {
-                    //Strip the "end" line from the while body
-                    
-                    String whileBody = whileBodies.peek().substring(0,whileBodies.peek().length()-4);
-                    
-                    String cond = whileConditions.peek();
-                    
-                    int lastRecordLow = recordLow;
-                    int lastRecordCap = recordCap;
-                    
-                    //System.out.println("First noticed end..." + recordLow + "," + recordCap);
-                    
-                    while (eval(cond)) {
+                if (!toSkip) {
+                    //This is the end tag for a while loop
+                    if (blockTypes.peek()==1) {
+                        //Strip the "end" line from the while body
                         
-                    
-                        recordLow = whileBodies.size();
-                        recordCap = whileBodies.size();
+                        String whileBody = whileBodies.peek().substring(0,whileBodies.peek().length()-4);
                         
-                        //System.out.println("During while..." + recordLow + "," + recordCap);
-                        scopes.pop();
-                        scopes.push(new HashMap<String, Object>());
-                        eval(whileBody,false);
+                        String cond = whileConditions.peek();
+                        
+                        int lastRecordLow = recordLow;
+                        int lastRecordCap = recordCap;
+                        
+                        //System.out.println("First noticed end..." + recordLow + "," + recordCap);
+                        
+                        while (eval(cond)) {
+                            
+                        
+                            recordLow = whileBodies.size();
+                            recordCap = whileBodies.size();
+                            
+                            //System.out.println("During while..." + recordLow + "," + recordCap);
+                            scopes.pop();
+                            scopes.push(new HashMap<String, Object>());
+                            eval(whileBody,false);
+                        }
+                        recordLow=lastRecordLow;
+                        recordCap=lastRecordCap - 1;
+                        
+                        //System.out.println("After end..." + recordLow + "," + recordCap);
+                        
+                        whileBodies.pop();
+                        whileConditions.pop();
+                        if (whileBodies.size()==0) record = false;
+                    } 
+                    blockTypes.pop();
+                    scopes.pop();
+                    return nextToken();
+                } else {
+                    if (skipCounter>0) {
+                        skipCounter--;
+                        return nextToken();
                     }
-                    recordLow=lastRecordLow;
-                    recordCap=lastRecordCap - 1;
-                    
-                    //System.out.println("After end..." + recordLow + "," + recordCap);
-                    
-                    whileBodies.pop();
-                    whileConditions.pop();
-                    if (whileBodies.size()==0) record = false;
-                } 
-                blockTypes.pop();
-                scopes.pop();
-                return nextToken();
+                    blockTypes.pop();
+                    toSkip=false;
+                    return nextToken();
+                }
             } else if (s.equals("exit")) {
                 return token=EXIT;
             } else if (s.equals("return")) {
@@ -385,13 +516,11 @@ package parser;
         Does not handle scopes, caller takes care of it!
     */
     private boolean eval(String code, boolean interactive) {
-    
+        
         
         System.out.println("---------------- Eval: --------------");
         System.out.println(code);
         System.out.println("-------------------------------------");
-        
-        
         
         inputs.push(new StringReader(code));
         
@@ -412,6 +541,8 @@ package parser;
         if (interactive) {
             record = savedRecord;
         }
+        
+        //System.out.println(liner.getReturn());
         
         if (liner.getReturn()==null) return false;
         return GPLHelper.isTrue(((NumberType)(liner.getReturn().val)).getDouble());
@@ -3376,7 +3507,7 @@ class GPLParser implements GPLTokens {
     }
 
     private int yyr55() { // symbol : NUMBER
-        {yyrv = new SemanticWrapper(new NumberType((Double)yysv[yysp-1].val)); setReturn(yyrv); }
+        {yyrv = new SemanticWrapper(yysv[yysp-1].val); setReturn(yyrv); }
         yysv[yysp-=1] = yyrv;
         return 8;
     }
@@ -3509,6 +3640,7 @@ class GPLParser implements GPLTokens {
   }
   
   private void modify(String name, Object val) {
+  
     int index = scopes.size()-1;
     
     boolean declared = false;
@@ -3533,14 +3665,33 @@ class GPLParser implements GPLTokens {
     Object obj = lookup(name);
     String typeName = obj.getClass().toString();
     
-    
     MethodHelper helper = new MethodHelper();
     Object[] actualArgs = args.toArray();
     
     Object toReturn = null;
+    
+    
+    System.out.println();
+    
+    
     try {
+        Class[] types = helper.map.get(typeName).get(method).getParameterTypes();
+        if (types.length!=actualArgs.length) {
+            System.out.println("Wrong number of parameters for method: " + method);
+        }
+        
+        for (int i = 0; i < actualArgs.length; i++) {
+            System.out.println(actualArgs[i]);
+            System.out.println(types[i]);
+            actualArgs[i] = types[i].cast(actualArgs[i]);
+        }
+        
         toReturn = helper.map.get(typeName).get(method).invoke(obj, actualArgs);
-    } catch (Exception e) {}
+        
+    } catch (Exception e) {
+        System.out.println(e);
+        System.out.println("Unknown method name: " + method);
+    }
     return toReturn;
   }
   

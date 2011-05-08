@@ -1,15 +1,7 @@
-Number a=2
 
-while (a)
+String a = "asd"
+print(a)
 
-    print("inside")
-    
-    if(1)
-        print("one")
-    else
-        print("other")
-    end
-    
-    a = a - 1
-    
-end
+String b = a.concat("fae")
+
+print(b)
