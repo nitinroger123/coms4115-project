@@ -14,13 +14,13 @@ import java.util.Set;
 import java.util.Stack;
 
 /**
- * new graph class 
- * @author nitin
+ * Graph Class to handle all the graph functions 
+ * @author nitin, mohan, jacob
  *
  */
 public class MyGraph implements Type{
-    public List<Node> nodes;
-    public List<Edge> edges;
+    private List<Node> nodes;
+    private List<Edge> edges;
     private Integer numberOfNodes;
     private Integer numberOfEdges;
     private Double adj[][];
@@ -34,6 +34,10 @@ public class MyGraph implements Type{
         this.index = 0;
     }
 
+    /**
+     * Returns a 2D Double array which represents the adjacency matrix.
+     * @return
+     */
     public Double[][] getAdjMatrix(){
         for(int i=0;i<numberOfNodes;i++){
             for(int j=0;j<numberOfNodes;j++){
@@ -49,6 +53,10 @@ public class MyGraph implements Type{
         return adj;
     }
 
+    /**
+     * Constructor which accepts a graph as input and does a copy of it.
+     * @param other
+     */
     public MyGraph(MyGraph other){
         this.nodes = other.nodes;
         this.edges = other.edges;
@@ -59,10 +67,10 @@ public class MyGraph implements Type{
         this.index = 0;
     }
 
-    //    public void replaceEdgeSet(List<Edge> newSet){
-    //    	
-    //    }
-
+    /**
+     * Adds a node to the graph
+     * @param n
+     */
     public void addNode(Node n){
         n.index = index;
         nodes.add(n);
@@ -70,11 +78,19 @@ public class MyGraph implements Type{
         index ++;
     }
 
+    /**
+     * Adds the list of nodes to this graph.
+     * @param nodes
+     */
     public void addAllNodes(List<Node> nodes){
         this.nodes.addAll(nodes);
         numberOfNodes += nodes.size();
     }
 
+    /**
+     * Adds a new edge to the Graph.
+     * @param e
+     */
     public void addEdge(Edge e){
         edges.add(e);
         e.getFirstNode().addAdjacentNode(e.getSecondNode());
@@ -82,6 +98,10 @@ public class MyGraph implements Type{
         this.numberOfEdges ++;
     }
 
+    /**
+     * Removes the edge from the graph.
+     * @param e
+     */
     public void removeEdge(Edge e){
         edges.remove(e);
         e.getFirstNode().removeAdjacentNode(e.getSecondNode());
@@ -89,6 +109,10 @@ public class MyGraph implements Type{
         this.numberOfEdges--;
     }
 
+    /**
+     * Adds the list of edges to the graph.
+     * @param edges
+     */
     public void addAllEdges(List<Edge> edges){
         for(Edge e: edges) {
             addEdge(e);
@@ -105,10 +129,18 @@ public class MyGraph implements Type{
         this.numberOfEdges ++;
     }
 
+    /**
+     * Returns the number of nodes present in this graph.
+     * @return
+     */
     public int getNumberOfNodes(){
         return numberOfNodes;
     }
 
+    /**
+     * Returns the number of edges present in this graph.
+     * @return
+     */
     public int getNumberOfEdges(){
         return numberOfEdges;
     }
@@ -200,7 +232,7 @@ public class MyGraph implements Type{
      * Returns the miniumum spanning tree; Uses Kruskal's algo.
      * @return
      */
-    public MyGraph minimumSpanningTree(){
+    public ArrayList<Edge> minimumSpanningTree(){
         // initialize a priority queue for the MST
         PriorityQueue<Edge> queue = new PriorityQueue<Edge>(); 
         queue.addAll(edges); 
@@ -229,15 +261,12 @@ public class MyGraph implements Type{
             System.out.println(e.node1.toString() + " " + e.node2.id.toString() + " " + e.cost); 
         }
         System.out.println("mst!");
-        MyGraph mstGraph = new MyGraph();
-        mstGraph.nodes = this.nodes;
-        mstGraph.edges = edgesMST;
-        return mstGraph;
+        return edgesMST;
     }
 
     /**
      * Returns a Topologically sorted Graph. The ordering of the nodes is in Topological Order.
-     * @return
+     * @return Graph with nodes in topological fashion, nn empty graph if the graph has a cycle
      */
     public MyGraph topologicalSort() {
         Queue<Node> nodesList = new LinkedList<Node>(nodes);
@@ -266,14 +295,16 @@ public class MyGraph implements Type{
             }
         }
         if(!tempEdgesSet.isEmpty()) {
-            // TODO Handle this more elegantly, throw exception of cycle etc.
             // Graph has cycle.
             return graph;
         }
         graph.addAllNodes(graphList);
-        return graph; // place holder
+        return graph;
     }
 
+    /*
+     * Helper method which retrieves the edge between two nodes.
+     */
     private Edge getEdge(Node fromNode, Node toNode) {
         for(Edge e: edges) {
             if(e.getFirstNode().equals(fromNode) && e.getSecondNode().equals(toNode))
@@ -282,12 +313,16 @@ public class MyGraph implements Type{
         return null;
     }
 
+    /**
+     * Returns the list of edges.
+     * @return
+     */
     public ArrayList<Edge> getEdgeList(){
         return (ArrayList<Edge>)edges;
     }
 
     /**
-     * Implemented a naive DFS
+     * Implemented a DFS from the start node to the goal node.
      * @param start
      * @param goal
      * @return
@@ -332,31 +367,41 @@ public class MyGraph implements Type{
     }
 
     /**
-     * TODO
+     * 
      */
     public boolean hasCycles(){
         // place holder
         return true;
     }
 
+    /**
+     * Returns the node specified by the index
+     * @param i
+     * @return
+     */
     public Node getNodeByInt(int i){
         return nodes.get(i);
     }
 
+    /**
+     * Mimics the getNodeByInt method, needed for the backend
+     * @param i
+     * @return
+     */
     public Node getNode(NumberType i) {
         return getNodeByInt((int)i.getDouble());
     }
-    
+
     /**
      * Simply creates "linearPath" in the order that the nodes exist in the nodes list
      */
-    //	public MyGraph linearize(){
-    //		linearPath = new ArrayList<Node>();
-    //		for(Node n: nodes){
-    //			linearPath.add(n);
-    //		}
-    //		return this;
-    //	}
+    //  public MyGraph linearize(){
+    //          linearPath = new ArrayList<Node>();
+    //          for(Node n: nodes){
+    //                  linearPath.add(n);
+    //          }
+    //          return this;
+    //  }
 
     /**
      * List Constructor
@@ -443,13 +488,13 @@ public class MyGraph implements Type{
     /**
      * Returns a tag of the given name for all nodes that have it
      */
-    //	public ArrayList<Type> getUniTag(String name){
-    //		ArrayList<Type> tagVals = new ArrayList<Type>();
-    //		for(int i = 0; i < nodes.size(); i++){
-    //			tagVals.add(nodes.get(i).getTag(name));
-    //		}
-    //		return tagVals;
-    //	
+    //  public ArrayList<Type> getUniTag(String name){
+    //          ArrayList<Type> tagVals = new ArrayList<Type>();
+    //          for(int i = 0; i < nodes.size(); i++){
+    //                  tagVals.add(nodes.get(i).getTag(name));
+    //          }
+    //          return tagVals;
+    //  
 
     /**
      * Adds a tag of the same name and type at the given (vector) values for all nodes
@@ -502,6 +547,10 @@ public class MyGraph implements Type{
         g.setVisible(true);
     }
 
+    /**
+     * Visualizes the graph with the specified edges
+     * @param specificEdges
+     */
     public void visualize(ArrayList<Edge> specificEdges){
         MyGraph temp = new MyGraph(this);
         while(temp.edges.size() != 0){
@@ -522,6 +571,10 @@ public class MyGraph implements Type{
         }
     }
 
+    /**
+     * Gets the all pairs shortest part adjacency matrix.
+     * @return
+     */
     public Double[][] allPairsShortestPath(){
         Double [][] adj = this.getAdjMatrix();
         for(int k = 0 ; k< numberOfNodes; k++){
@@ -533,15 +586,15 @@ public class MyGraph implements Type{
         }
         return adj;
     }
-    
+
     @Override
-	public String getValue() {
-		String s="[";
-		for(Node n: nodes){
-			s=s+n.getValue();
-		}
-		s=s+"]";
-		return s;
-	}
+    public String getValue() {
+        String s="[";
+        for(Node n: nodes){
+            s=s+n.getValue();
+        }
+        s=s+"]";
+        return s;
+    }
 
 }
