@@ -336,10 +336,14 @@ public class MyGraph implements Type{
         return true;
     }
 
-    public Node getNode(NumberType i){
-        return nodes.get((int)i.getDouble());
+    public Node getNodeByInt(int i){
+        return nodes.get(i);
     }
 
+    public Node getNode(NumberType i) {
+        return getNodeByInt((int)i.getDouble());
+    }
+    
     /**
      * Simply creates "linearPath" in the order that the nodes exist in the nodes list
      */
