@@ -25,36 +25,36 @@ public class StringType implements Type{
         System.out.println(value);
     }
     
-    public String substring(int beginIndex) {
-        return value.substring(beginIndex);
+    public StringType substring(NumberType beginIndex) {
+        return new StringType(value.substring((int)beginIndex.getDouble()));
     }
     
-    public String substring(int beginIndex, int endIndex) {
-        return value.substring(beginIndex, endIndex);
+    public StringType substring(NumberType beginIndex, NumberType endIndex) {
+        return new StringType(value.substring((int)beginIndex.getDouble(), (int)endIndex.getDouble()));
     }
     
-    public String concat(String str) {
-        return value + str;
+    public StringType concat(StringType str) {
+        return new StringType(value + str.getValue());
     }
     
-    public int find(String str) {
-        return value.indexOf(str);
+    public NumberType find(StringType str) {
+        return new NumberType(value.indexOf(str.getValue()));
     }
     
-    public int findLast(String str) {
-        return value.lastIndexOf(str, value.length());
+    public NumberType findLast(StringType str) {
+        return new NumberType(value.lastIndexOf(str.getValue(), value.length()));
     }
     
-    public String toUpper() {
-        return value.toUpperCase();
+    public StringType toUpper() {
+        return new StringType(value.toUpperCase());
     }
     
-    public String toLower() {
-        return value.toLowerCase();
+    public StringType toLower() {
+        return new StringType(value.toLowerCase());
     }
     
-    public String reverse() {
+    public StringType reverse() {
         StringBuilder sb = new StringBuilder(value);
-        return sb.reverse().toString();
+        return new StringType(sb.reverse().toString());
     }
 }
