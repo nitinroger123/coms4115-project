@@ -10,9 +10,9 @@ public class Preprocessor {
 	public ArrayList<String> code = new ArrayList<String>();
  	public ArrayList<FunctionDef> functions = new ArrayList<FunctionDef>();
 	public Preprocessor(String filename) throws IOException{
-		process(filename);
+		processFunctions(filename);
 	}
-	public void process(String fileName) throws IOException{
+	public void processFunctions(String fileName) throws IOException{
 		BufferedReader reader = new BufferedReader(new FileReader(fileName));
 		String s = "";
 		boolean seenFunc = false;
@@ -62,7 +62,6 @@ public class Preprocessor {
 	
 	public static void main(String args[]) throws IOException{
 		Preprocessor p = new Preprocessor("preprocess");
-		//System.out.println(p.functions.get(0).toString());
 		System.out.println(p.functions.get(0).name);
 		System.out.println(p.functions.get(0).paramsType.get(0));
 		System.out.println(p.functions.get(0).paramsType.get(1));
