@@ -1,4 +1,4 @@
-Graph a = [ 1,2,3,4]
+Graph a = [1, 2, 3, 4]
 
 Node n = a.get(3)
 
