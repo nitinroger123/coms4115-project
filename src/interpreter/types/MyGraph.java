@@ -530,11 +530,15 @@ public class MyGraph implements Type{
         }
         return adj;
     }
-
+    
     @Override
-    public String getValue() {
-        // TODO Auto-generated method stub
-        return nodes.toString();
-    }
+	public String getValue() {
+		String s="[";
+		for(Node n: nodes){
+			s=s+n.getValue();
+		}
+		s=s+"]";
+		return s;
+	}
 
 }
