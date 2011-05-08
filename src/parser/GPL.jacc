@@ -229,6 +229,22 @@
                         return nextToken();
                     }
                 }
+           case '[' : 
+                { 
+                    if (!toSkip) {
+                        return token='[';
+                    } else {
+                        return nextToken();
+                    }
+                }
+          case ']' : 
+                { 
+                    if (!toSkip) {
+                        return token=']';
+                    } else {
+                        return nextToken();
+                    }
+                }
 		  case '=' : 
                     /*
                     lastChar = c;
@@ -572,7 +588,7 @@
 %token PRINT INCLUDE DEF IF ELSE ELSIF WHILE NEXT LAST END EXIT RETURN ENDPOINT
 %token NL
 %token TYPE ID STRING_LITERAL NUMBER
-%token '+' '-' '*' '/' '(' ')' '^' ',' '.' '!' '|' '&'
+%token '+' '-' '*' '/' '(' ')' '[' ']' '^' ',' '.' '!' '|' '&'
 %left  '+' '-'
 %left  '*' '/' '%' 
 %right '^'
@@ -637,11 +653,15 @@ argswrapper 	: args                      {$$ = $1;}
 				| /* empty */               {$$ = new SemanticWrapper(null);}
 				;
 declaration : TYPE ID '=' expr              {declare((String)$1.val,(String)$2.val,$4.val);}
+            | TYPE ID '=' '[' listofexpr ']'    {declareList((String)$1.val,(String)$2.val,$5.val);}
 			| TYPE ID                       {declare((String)$1.val,(String)$2.val,null);}
 			;
 assignment	: ID '=' expr                   {modify((String)$1.val, $3.val); setReturn($3); }
+			| ID '=' '[' listofexpr ']'		    {declareList((String)$1.val,(String)$2.val,$5.val);}
 			;
-
+listofexpr: expr ',' listofexpr				{((ArrayList<Object>)$$.val).add(0,$1.val);}
+			| expr					{$$ = new SemanticWrapper(new ArrayList<Object>()); ((ArrayList<Object>)($$.val)).add($1.val);}
+			;
 /* get rid of the char strings */
 expr		: ID '.' ID '(' argswrapper ')' {$$ = new SemanticWrapper(invoke((String)($1.val), (String)($3.val), ( $5.val==null ? null : (ArrayList<Object>)($5.val) )));}
 			| ID '(' argswrapper ')'
@@ -775,6 +795,13 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val)
     } else if (type.equals("String")) {
         scopes.peek().put(name, (val==null ? new StringType() : (StringType)val));
     }
+  }
+  
+  private void declareList(String type, String name, Object val){
+    if(type.equals("Graph")){
+        System.out.println(val.get(3).getValue());
+       scopes.peek().put(name, (val==null ? new MyGraph() : new MyGraph(val)));
+    }else{}
   }
   
   private void setReturn(SemanticWrapper toReturn) {
