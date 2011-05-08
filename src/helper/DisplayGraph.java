@@ -16,71 +16,76 @@ public class DisplayGraph extends JFrame {
     JScrollPane scrollpane;
     DisplayPanel panel;
 
-    MyGraph g;
-
-    public DisplayGraph(MyGraph aGraph) {
-        g = aGraph;
-        panel = new DisplayPanel(g.getEdgeList()); // initialize a new display panel (as defined in the internal class below)
-        panel.setPreferredSize(new Dimension(300, 300));
-        scrollpane = new JScrollPane(panel);
-        getContentPane().add(scrollpane, BorderLayout.CENTER);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        pack(); // cleans up the window panel
-    }
-
-    public void KamKawLayout(){
-        int n = g.getNumberOfNodes();
-        double x[] = new double[n];
-        double y[] = new double[n];
-        for(int i = 0; i < n; i++){
-            x[i] = g.getNodeByInt(i).x;
-            y[i] = g.getNodeByInt(i).y;
-        }
-        //		double[][] dist = g.allPairsShortestPath();
-        //		int max = 0;
-        //		for(int i = 0; i < n; i++){
-        //			for(int j = 0; j < n; j++){
-        //				if(dist[i][j] > max){max = dist[i][j];}
-        //			}
-        //		}
-        //		double lScale = 300/(double)max;
-        //		double[][] l = new double[n][n];
-        //		for(int i = 0; i < n; i++){
-        //			for(int j = 0; j < n; j++){
-        //				l[i][j] = lScale*dist[i][j];
-        //			}
-        //		}
-        //		double kScale = 1;
-        //		double[][] k = new double[n][n];
-        //		for(int i = 0; i < n; i++){
-        //			for(int j = 0; j < n; j++){
-        //				k[i][j] = K/(dist[i][j]*dist[i][j]);
-        //			}
-        //		}
-        //		double[] delEx = new double[n];
-        //		double[] delEy = new double[n];
-        //		double[] delEall = new double[n];
-        //		for(int m = 0; m < n; m++){
-        //			double sumX = 0;
-        //			double sumY = 0;
-        //			for(int i = 0; i < n; i++){
-        //				if(m != i){
-        //					sumX += k[m][i]*((x[m] - x[i])- l[m][i]*(x[m]-x[i])/Math.sqrt((x[m]-x[i])*(x[m]-x[i]) + (y[m]-y[i])*(y[m]-y[i])));
-        //					sumY += k[m][i]*((y[m] - y[i])- l[m][i]*(y[m]-y[i])/Math.sqrt((x[m]-x[i])*(x[m]-x[i]) + (y[m]-y[i])*(y[m]-y[i])));
-        //				}
-        //			}
-        //			delEx[m] = sumX;
-        //			delEy[m] = sumY;
-        //			delEall[m] = Math.sqrt(delEx[m]*delEx[m] +delEy[m]*delEy[m]);
-        //		}
-        //		double[] velX = double[n];
-        //		double[] velY = double[n];
-        //		double forceConst = 
-        //		for(int i = 0; i < n; i++){
-        //			velX[i] = velX[i] + delEx[i]
-        //		}
-    }
+	MyGraph g;
+	
+	public DisplayGraph(MyGraph aGraph) {
+		g = aGraph;
+		panel = new DisplayPanel(g.getEdgeList()); // initialize a new display panel (as defined in the internal class below)
+		panel.setPreferredSize(new Dimension(300, 300));
+		scrollpane = new JScrollPane(panel);
+		getContentPane().add(scrollpane, BorderLayout.CENTER);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		pack(); // cleans up the window panel
+	}
+	
+	/**
+	 * @author Jacob
+	 */
+	public void KamKawLayout(){
+		int n = g.getNumberOfNodes();
+		double x[] = new double[n];
+		double y[] = new double[n];
+		for(int i = 0; i < n; i++){
+			x[i] = g.getNode(new NumberType(i)).x;
+			y[i] = g.getNode(new NumberType(i)).y;
+		}
+		Double[][] dist = g.allPairsShortestPath();
+		double max = 0;
+		for(int i = 0; i < n; i++){
+			for(int j = 0; j < n; j++){
+				if(dist[i][j] > max){max = dist[i][j];}
+			}
+		}
+		double lScale = 300/(double)max;
+		double[][] l = new double[n][n];
+		for(int i = 0; i < n; i++){
+			for(int j = 0; j < n; j++){
+				l[i][j] = lScale*dist[i][j];
+			}
+		}
+		double kScale = 1;
+		double[][] k = new double[n][n];
+		for(int i = 0; i < n; i++){
+			for(int j = 0; j < n; j++){
+				k[i][j] = kScale/(dist[i][j]*dist[i][j]);
+			}
+		}
+		double[] delEx = new double[n];
+		double[] delEy = new double[n];
+		double[] delEall = new double[n];
+		for(int m = 0; m < n; m++){
+			double sumX = 0;
+			double sumY = 0;
+			for(int i = 0; i < n; i++){
+				if(m != i){
+					sumX += k[m][i]*((x[m] - x[i])- l[m][i]*(x[m]-x[i])/Math.sqrt((x[m]-x[i])*(x[m]-x[i]) + (y[m]-y[i])*(y[m]-y[i])));
+					sumY += k[m][i]*((y[m] - y[i])- l[m][i]*(y[m]-y[i])/Math.sqrt((x[m]-x[i])*(x[m]-x[i]) + (y[m]-y[i])*(y[m]-y[i])));
+				}
+			}
+			delEx[m] = sumX;
+			delEy[m] = sumY;
+			delEall[m] = Math.sqrt(delEx[m]*delEx[m] +delEy[m]*delEy[m]);
+//		}
+//		double[] velX = double[n];
+//		double[] velY = double[n];
+//		double forceConst = 1;
+//		double damping = 0.9;
+//		for(int i = 0; i < n; i++){
+//			velX[i] = (velX[i] + delEx[i]*forceConst)*damping
+		}
+	}
 }
+
 
 
 @SuppressWarnings("serial")
@@ -124,4 +129,4 @@ class DisplayPanel extends JPanel {
             g.drawRoundRect(dx2, dy2, DIMENSION,DIMENSION , DIMENSION, DIMENSION);
         }
     }
-} 
+}
