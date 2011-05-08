@@ -38,10 +38,13 @@ public class Preprocessor {
 				seenFunc = true;
 				String def =s;
 				String params[] = new String [100];
+				String name="";
 				ArrayList<String> types = new ArrayList<String>();
 				for(int i=0;i<def.length();i++){
 					if(def.charAt(i)=='('){
 						params = def.substring(i+1).split(",");
+						name = def.substring(3,i);
+						name = name.replaceAll("^\\s+", "");
 						break;
 					}
 				}
@@ -49,7 +52,7 @@ public class Preprocessor {
 					params[i] = params[i].replaceAll("^\\s+", "");
 					types.add(params[i].split(" ")[0].trim());
 				}
-				function = new FunctionDef(def, "", types);
+				function = new FunctionDef(name, "", types);
 				functionDefinitions.add(s);
 			}
 		}
@@ -60,10 +63,15 @@ public class Preprocessor {
 	public static void main(String args[]) throws IOException{
 		Preprocessor p = new Preprocessor("preprocess");
 		//System.out.println(p.functions.get(0).toString());
-		String type1 = p.functions.get(0).paramsType.get(0);
-		System.out.println(type1);
+		System.out.println(p.functions.get(0).name);
+		System.out.println(p.functions.get(0).paramsType.get(0));
 		System.out.println(p.functions.get(0).paramsType.get(1));
 		System.out.println(p.functions.get(0).paramsType.get(2));
+		System.out.println(p.functions.get(0).code);
+		System.out.println("*****************");
+		System.out.println(p.functions.get(1).name);
+		System.out.println(p.functions.get(1).paramsType.get(0));
+		System.out.println(p.functions.get(0).code);
 	}
 
 }
