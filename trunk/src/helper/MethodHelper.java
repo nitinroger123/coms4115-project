@@ -1,5 +1,4 @@
 package helper;
-
 import interpreter.types.*;
 import interpreter.types.NumberType;
 import java.lang.reflect.Method;
@@ -7,6 +6,7 @@ import java.util.HashMap;
 
 /**
  * to use the hashMap just do new MethodHelper().map
+ * This class is to interface with the front end.
  * @author nitin
  *
  */
@@ -16,7 +16,9 @@ public class MethodHelper {
 	public MethodHelper(){
 		init();
 	}
-	
+	/**
+	 * load in the different classes and update the hashmap
+	 */
 	public void init(){
 		HashMap<String, Method> graphMap = new HashMap<String, Method>();
 		HashMap<String, Method> numMap = new HashMap<String, Method>();
@@ -41,7 +43,9 @@ public class MethodHelper {
 		map.put(str.getClass().toString(),strMap);
 	}
 	
-	
+	/**
+	 * Tester
+	 */
 	public static void main(String args []) throws IllegalArgumentException, IllegalAccessException{
 		MyGraph g = new MyGraph();
 		StringType s = new StringType();

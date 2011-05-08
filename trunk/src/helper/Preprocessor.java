@@ -63,7 +63,11 @@ public class Preprocessor {
 		
 		
 	}
-	
+	/**
+	 * Tester code
+	 * @param args
+	 * @throws IOException
+	 */
 	public static void main(String args[]) throws IOException{
 		Preprocessor p = new Preprocessor("preprocess");
 		System.out.println(p.functions.get(0).name);
