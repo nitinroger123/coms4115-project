@@ -12,30 +12,30 @@ import org.junit.Test;
 
 public class MyGraphTest {
     MyGraph testGraph;
-	@Test
-	public void testPageRank(){
-		Node n1 = new Node(new NumberType(1.0));
-		Node n2 = new Node(new NumberType(2.0));
-		Node n3 = new Node(new NumberType(3.0));
-		Node n4 = new Node(new NumberType(4.0));
-		testGraph.addNode(n1);
-		testGraph.addNode(n2);
-		testGraph.addNode(n3);
-		testGraph.addNode(n4);
-		Edge e = new Edge(n1, n2, new NumberType(1.0));
-		testGraph.addEdge(e);
-		e = new Edge(n1, n3, new NumberType(1.0));
-		testGraph.addEdge(e);
-		e = new Edge(n1, n4, new NumberType(1.0));
-		testGraph.addEdge(e);
-		Vector pr = testGraph.getPageRank();
-		pr.print();
-	}
-	
+    @Test
+    public void testPageRank(){
+        Node n1 = new Node(new NumberType(1.0));
+        Node n2 = new Node(new NumberType(2.0));
+        Node n3 = new Node(new NumberType(3.0));
+        Node n4 = new Node(new NumberType(4.0));
+        testGraph.addNode(n1);
+        testGraph.addNode(n2);
+        testGraph.addNode(n3);
+        testGraph.addNode(n4);
+        Edge e = new Edge(n1, n2, new NumberType(1.0));
+        testGraph.addEdge(e);
+        e = new Edge(n1, n3, new NumberType(1.0));
+        testGraph.addEdge(e);
+        e = new Edge(n1, n4, new NumberType(1.0));
+        testGraph.addEdge(e);
+        Vector pr = testGraph.getPageRank();
+        pr.print();
+    }
+
 
     // This creates a test graph as shown here http://en.wikipedia.org/wiki/File:Graph.traversal.example.svg
     // TODO Change this graph to be a generic graph which can be a test case for all the graph methods,
-   
+
     private MyGraph getTestGraph() {
         MyGraph myGraph = new MyGraph();
         Node[] arr = new Node[] {
@@ -51,7 +51,7 @@ public class MyGraphTest {
         myGraph.addAllEdges(Arrays.asList(arrEdge));
         return myGraph;
     }
-    
+
     @Before
     public void setUp(){
         testGraph = new MyGraph();
@@ -60,6 +60,10 @@ public class MyGraphTest {
     public void tearDown(){
         testGraph = null;
     }
+    
+    /**
+     * Tests the creation of Graph
+     */
     @Test
     public void testGraphCreation(){
         Node n1 = new Node(new NumberType(1.0));
@@ -69,6 +73,9 @@ public class MyGraphTest {
         assertEquals(2,testGraph.getNumberOfNodes());
     }
 
+    /**
+     * Tests the adding of edges
+     */
     @Test
     public void testEdgeAddition(){
         Node n1 = new Node(new NumberType(1.0));
@@ -81,6 +88,9 @@ public class MyGraphTest {
         assertTrue(n2.getAdjacent().contains(n1));
     }
 
+    /**
+     * Tests the bfs functionality of MyGraph
+     */
     @Test
     public void testBFS(){
         Node n1 = new Node(new NumberType(1.0));
@@ -108,6 +118,9 @@ public class MyGraphTest {
         assertEquals(4,testGraph.bfs(n1).getNumberOfEdges());
     }
 
+    /**
+     * Tests the printing of the nodes
+     */
     @Test
     public void testPrintNodes(){
         Node n1 = new Node(new NumberType(1.0));
@@ -126,6 +139,9 @@ public class MyGraphTest {
         assertEquals(expected, testGraph.printNodes());
     }
 
+    /**
+     * Tests the dfs functionality on the graph.
+     */
     @Test
     public void testDfs() {
         MyGraph graph = getTestGraph();
@@ -135,11 +151,14 @@ public class MyGraphTest {
         String expected = "1.0 4.0 5.0 6.0 3.0 ";
         assertEquals(expected, graph.printNodes());
     }
-    
+
+    /**
+     * Tests the display of the graph.
+     */
     @Test
     public void testDisplay(){
-    	testGraph = new MyGraph();
-    	Node n1 = new Node(new NumberType(1.0));
+        testGraph = new MyGraph();
+        Node n1 = new Node(new NumberType(1.0));
         Node n2 = new Node(new NumberType(2.0));
         Node n3 = new Node(new NumberType(3.0));
         Node n4 = new Node(new NumberType(4.0));
@@ -161,10 +180,10 @@ public class MyGraphTest {
         testGraph.addEdge(e);
         Double [][] adj = testGraph.getAdjMatrix();
         for(int i=0;i<testGraph.getNumberOfNodes();i++){
-        	for(int j=0;j<testGraph.getNumberOfEdges();j++){
-        		System.out.print(adj[i][j]+" ");
-        	}
-        	System.out.println();
+            for(int j=0;j<testGraph.getNumberOfEdges();j++){
+                System.out.print(adj[i][j]+" ");
+            }
+            System.out.println();
         }
         testGraph.visualize();
     }
