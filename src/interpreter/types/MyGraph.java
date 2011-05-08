@@ -33,43 +33,43 @@ public class MyGraph implements Type{
         adj = new Double[1000][1000];
         this.index = 0;
     }
-    
+
     public Double[][] getAdjMatrix(){
-    	for(int i=0;i<numberOfNodes;i++){
-    		for(int j=0;j<numberOfNodes;j++){
-    			adj[i][j] =0.0;
-    		}
-    	}
-    	for(Edge e : edges){
-    		Node n1 = e.getFirstNode();
-    		Node n2 = e.getSecondNode();
-    		Double val = e.cost;
-    		adj[n1.index][n2.index] = val;
-    	}
-    	return adj;
+        for(int i=0;i<numberOfNodes;i++){
+            for(int j=0;j<numberOfNodes;j++){
+                adj[i][j] =0.0;
+            }
+        }
+        for(Edge e : edges){
+            Node n1 = e.getFirstNode();
+            Node n2 = e.getSecondNode();
+            Double val = e.cost;
+            adj[n1.index][n2.index] = val;
+        }
+        return adj;
     }
 
     public MyGraph(MyGraph other){
-    	this.nodes = other.nodes;
-    	this.edges = other.edges;
-    	this.numberOfNodes = nodes.size();
-    	this.numberOfEdges = edges.size();
+        this.nodes = other.nodes;
+        this.edges = other.edges;
+        this.numberOfNodes = nodes.size();
+        this.numberOfEdges = edges.size();
 
         adj = new Double[1000][1000];
         this.index = 0;
     }
-    
-//    public void replaceEdgeSet(List<Edge> newSet){
-//    	
-//    }
-    
+
+    //    public void replaceEdgeSet(List<Edge> newSet){
+    //    	
+    //    }
+
     public void addNode(Node n){
         n.index = index;
-    	nodes.add(n);
+        nodes.add(n);
         this.numberOfNodes ++;
         index ++;
     }
-    
+
     public void addAllNodes(List<Node> nodes){
         this.nodes.addAll(nodes);
         numberOfNodes += nodes.size();
@@ -81,12 +81,12 @@ public class MyGraph implements Type{
         e.getSecondNode().addAdjacentNode(e.getFirstNode());
         this.numberOfEdges ++;
     }
-    
+
     public void removeEdge(Edge e){
-    	edges.remove(e);
-    	e.getFirstNode().removeAdjacentNode(e.getSecondNode());
-    	e.getSecondNode().removeAdjacentNode(e.getFirstNode());
-    	this.numberOfEdges--;
+        edges.remove(e);
+        e.getFirstNode().removeAdjacentNode(e.getSecondNode());
+        e.getSecondNode().removeAdjacentNode(e.getFirstNode());
+        this.numberOfEdges--;
     }
 
     public void addAllEdges(List<Edge> edges){
@@ -94,7 +94,7 @@ public class MyGraph implements Type{
             addEdge(e);
         }
     }
-    
+
     /**
      * adds a directed edge from node1 to node2
      * @param e
@@ -201,37 +201,37 @@ public class MyGraph implements Type{
      * @return
      */
     public ArrayList<Edge> minimumSpanningTree(){
-    	// initialize a priority queue for the MST
-    	PriorityQueue<Edge> queue = new PriorityQueue<Edge>(); 
-		queue.addAll(edges); 
-		// initialize an array list for the edges of the MST
-		ArrayList<Edge> edgesMST = new ArrayList<Edge>(); 
-		HashMap<String, Integer> map = new HashMap<String, Integer>(); 
-		Integer counter = 1;
-		for(Node node: nodes) {
-			map.put(node.id.toString(), counter); 
-			counter++;
-		}
-		while(!queue.isEmpty()) { 
-			Edge e = queue.remove();
-			Integer idx1 = map.get(e.node2.id.toString());
-			Integer idx2 = map.get(e.node1.id.toString());
-			if(!idx1.equals(idx2)) {
-				edgesMST.add(e);
-				for(String node: map.keySet()) {
-					if(map.get(node).equals(idx2)) {
-						map.put(node, idx1);
-					}
-				}
-			}
-		}
-		for(Edge e: edgesMST) {
-			System.out.println(e.node1.toString() + " " + e.node2.id.toString() + " " + e.cost); 
-		}
-		System.out.println("mst!");
+        // initialize a priority queue for the MST
+        PriorityQueue<Edge> queue = new PriorityQueue<Edge>(); 
+        queue.addAll(edges); 
+        // initialize an array list for the edges of the MST
+        ArrayList<Edge> edgesMST = new ArrayList<Edge>(); 
+        HashMap<String, Integer> map = new HashMap<String, Integer>(); 
+        Integer counter = 1;
+        for(Node node: nodes) {
+            map.put(node.id.toString(), counter); 
+            counter++;
+        }
+        while(!queue.isEmpty()) { 
+            Edge e = queue.remove();
+            Integer idx1 = map.get(e.node2.id.toString());
+            Integer idx2 = map.get(e.node1.id.toString());
+            if(!idx1.equals(idx2)) {
+                edgesMST.add(e);
+                for(String node: map.keySet()) {
+                    if(map.get(node).equals(idx2)) {
+                        map.put(node, idx1);
+                    }
+                }
+            }
+        }
+        for(Edge e: edgesMST) {
+            System.out.println(e.node1.toString() + " " + e.node2.id.toString() + " " + e.cost); 
+        }
+        System.out.println("mst!");
         return edgesMST;
     }
-    
+
     /**
      * Returns a Topologically sorted Graph. The ordering of the nodes is in Topological Order.
      * @return
@@ -278,11 +278,11 @@ public class MyGraph implements Type{
         }
         return null;
     }
-    
+
     public ArrayList<Edge> getEdgeList(){
-    	return (ArrayList<Edge>)edges;
+        return (ArrayList<Edge>)edges;
     }
-    
+
     /**
      * Implemented a naive DFS
      * @param start
@@ -335,9 +335,9 @@ public class MyGraph implements Type{
         // place holder
         return true;
     }
-    
-    public Node getNode(int i){
-    	return nodes.get(i);
+
+    public Node getNode(NumberType i){
+        return nodes.get((int)i.getDouble());
     }
 
     /**
@@ -355,16 +355,16 @@ public class MyGraph implements Type{
      * List Constructor
      */
     public MyGraph(List<Type> listElements){
-    	this.nodes = new ArrayList<Node>();
-    	this.edges = new ArrayList<Edge>();
-    	this.numberOfNodes = 0;
-    	this.numberOfEdges = 0;
-    	adj = new Double[1000][1000];
-    	this.index = 0;
-    	for(Type elem: listElements){
-    		Node n = new Node(elem);
-    		addNode(n);
-    	}
+        this.nodes = new ArrayList<Node>();
+        this.edges = new ArrayList<Edge>();
+        this.numberOfNodes = 0;
+        this.numberOfEdges = 0;
+        adj = new Double[1000][1000];
+        this.index = 0;
+        for(Type elem: listElements){
+            Node n = new Node(elem);
+            addNode(n);
+        }
     }
 
     /**
@@ -443,94 +443,94 @@ public class MyGraph implements Type{
     //		}
     //		return tagVals;
     //	
-    
-    /**
-	 * Adds a tag of the same name and type at the given (vector) values for all nodes
-	 */
-	public void setUniTag(String name, Vector vec){
-		for(int i = 0; i < nodes.size(); i++){
-			nodes.get(i).setTag(name, vec.get(i));
-		}
-	}
-	
-	/**
-	 * Returns a vector the PageRank each nodes
-	 */
-	public Vector getPageRank(){
-		int n = getNumberOfNodes();
-		ArrayList<NumberType> invDegrees = new ArrayList<NumberType>();
-		Matrix adjMat = new Matrix(this);
-		for(int i = 0; i < n; i++){
-			int sum = 0;
-			for(int j = 0; j < n; j++){
-				sum += adjMat.get(i,j).getDouble();
-			}
-			invDegrees.add(new NumberType(1/(double)sum));
-		}
-		
-		Vector prOld = new Vector(n, new NumberType(1/(double)n));
-		Vector prNew = new Vector(n, new NumberType(1/(double)n));
-		Vector invDeg = new Vector(invDegrees);
-		
-		Matrix googleMatrix = new Matrix(adjMat);
-		double dampFactor = 0.15;
-		int iters = 0;
-		while( 1 - prOld.normalize().dot(prNew.normalize()).getDouble() > 0.001 || iters < 100){
-			Vector uniform = new Vector(n, new NumberType(1/(double)n));
-			prOld = new Vector(prNew);
-			//System.out.println(prOld.normalize().dot(prNew.normalize()).getValue());
-			prOld.print();
-			prNew = googleMatrix.vecMult((new Matrix(invDeg)).vecMult(prOld)).scalarMult(new NumberType(1-dampFactor)).add(uniform.scalarMult(new NumberType(dampFactor)));
-			iters++;
-		}
-		
-		return prOld;
-	}
-	
-	/**
-	 * method to display the graph 
-	 */
-	public void visualize(){
-		DisplayGraph g = new DisplayGraph(this);
-		g.setVisible(true);
-	}
-	
-	public void visualize(ArrayList<Edge> specificEdges){
-		MyGraph temp = new MyGraph(this);
-		while(temp.edges.size() != 0){
-			temp.removeEdge(temp.edges.get(temp.getNumberOfEdges()-1));
-		}
-		temp.addAllEdges(specificEdges);
-		DisplayGraph g = new DisplayGraph(temp);
-		g.setVisible(true);
-	}
-	
-	/**
-	 * Traverses the nodes and applies the function passed in
-	 * @param f
-	 */
-	public void traverseNodes(Function f){
-		for(Node n: this.nodes){
-			n.applyFunction(f);
-		}
-	}
-	
-	public Double[][] allPairsShortestPath(){
-		Double [][] adj = this.getAdjMatrix();
-		for(int k = 0 ; k< numberOfNodes; k++){
-			for(int i=0;i<numberOfNodes;i++){
-				for(int j=0;j<numberOfNodes;j++){
-					adj[i][j] = Math.min(adj[i][j], adj[i][k]+adj[k][j]);
-				}
-			}
-		}
-		return adj;
-	}
 
-	@Override
-	public String getValue() {
-		// TODO Auto-generated method stub
-		return nodes.toString();
-	}
-	
+    /**
+     * Adds a tag of the same name and type at the given (vector) values for all nodes
+     */
+    public void setUniTag(String name, Vector vec){
+        for(int i = 0; i < nodes.size(); i++){
+            nodes.get(i).setTag(name, vec.get(i));
+        }
+    }
+
+    /**
+     * Returns a vector the PageRank each nodes
+     */
+    public Vector getPageRank(){
+        int n = getNumberOfNodes();
+        ArrayList<NumberType> invDegrees = new ArrayList<NumberType>();
+        Matrix adjMat = new Matrix(this);
+        for(int i = 0; i < n; i++){
+            int sum = 0;
+            for(int j = 0; j < n; j++){
+                sum += adjMat.get(i,j).getDouble();
+            }
+            invDegrees.add(new NumberType(1/(double)sum));
+        }
+
+        Vector prOld = new Vector(n, new NumberType(1/(double)n));
+        Vector prNew = new Vector(n, new NumberType(1/(double)n));
+        Vector invDeg = new Vector(invDegrees);
+
+        Matrix googleMatrix = new Matrix(adjMat);
+        double dampFactor = 0.15;
+        int iters = 0;
+        while( 1 - prOld.normalize().dot(prNew.normalize()).getDouble() > 0.001 || iters < 100){
+            Vector uniform = new Vector(n, new NumberType(1/(double)n));
+            prOld = new Vector(prNew);
+            //System.out.println(prOld.normalize().dot(prNew.normalize()).getValue());
+            prOld.print();
+            prNew = googleMatrix.vecMult((new Matrix(invDeg)).vecMult(prOld)).scalarMult(new NumberType(1-dampFactor)).add(uniform.scalarMult(new NumberType(dampFactor)));
+            iters++;
+        }
+
+        return prOld;
+    }
+
+    /**
+     * method to display the graph 
+     */
+    public void visualize(){
+        DisplayGraph g = new DisplayGraph(this);
+        g.setVisible(true);
+    }
+
+    public void visualize(ArrayList<Edge> specificEdges){
+        MyGraph temp = new MyGraph(this);
+        while(temp.edges.size() != 0){
+            temp.removeEdge(temp.edges.get(temp.getNumberOfEdges()-1));
+        }
+        temp.addAllEdges(specificEdges);
+        DisplayGraph g = new DisplayGraph(temp);
+        g.setVisible(true);
+    }
+
+    /**
+     * Traverses the nodes and applies the function passed in
+     * @param f
+     */
+    public void traverseNodes(Function f){
+        for(Node n: this.nodes){
+            n.applyFunction(f);
+        }
+    }
+
+    public Double[][] allPairsShortestPath(){
+        Double [][] adj = this.getAdjMatrix();
+        for(int k = 0 ; k< numberOfNodes; k++){
+            for(int i=0;i<numberOfNodes;i++){
+                for(int j=0;j<numberOfNodes;j++){
+                    adj[i][j] = Math.min(adj[i][j], adj[i][k]+adj[k][j]);
+                }
+            }
+        }
+        return adj;
+    }
+
+    @Override
+    public String getValue() {
+        // TODO Auto-generated method stub
+        return nodes.toString();
+    }
+
 }
