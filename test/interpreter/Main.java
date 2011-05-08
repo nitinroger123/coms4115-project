@@ -38,8 +38,8 @@ public class Main {
     
     public static void dfsTest() {
         MyGraph graph = getTestGraph();
-        Node start = graph.getNode(0);
-        Node end = graph.getNode(2);
+        Node start = graph.getNodeByInt(0);
+        Node end = graph.getNodeByInt(2);
         MyGraph temp = graph.dfs(start, end);
         System.out.println(temp.getNumberOfEdges());
         System.out.println(temp.getNumberOfNodes());
@@ -48,8 +48,8 @@ public class Main {
     
     public static void bfsTest() {
         MyGraph testGraph = getTestGraph();
-        Node n1 = testGraph.getNode(0);
-        Node n5 = testGraph.getNode(5);
+        Node n1 = testGraph.getNodeByInt(0);
+        Node n5 = testGraph.getNodeByInt(5);
         testGraph.bfs(n1,n5).visualize();
     }
 }

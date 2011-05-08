@@ -129,8 +129,8 @@ public class MyGraphTest {
     @Test
     public void testDfs() {
         MyGraph graph = getTestGraph();
-        Node start = graph.getNode(0);
-        Node end = graph.getNode(2);
+        Node start = graph.getNodeByInt(0);
+        Node end = graph.getNodeByInt(2);
         graph = graph.dfs(start, end);
         String expected = "1.0 4.0 5.0 6.0 3.0 ";
         assertEquals(expected, graph.printNodes());
