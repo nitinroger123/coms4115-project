@@ -48,17 +48,20 @@ public class MyGraph implements Type{
     	}
     	return adj;
     }
-    
+
     public MyGraph(MyGraph other){
     	this.nodes = other.nodes;
     	this.edges = other.edges;
     	this.numberOfNodes = nodes.size();
     	this.numberOfEdges = edges.size();
+
+        adj = new Double[1000][1000];
+        this.index = 0;
     }
     
-    public void replaceEdgeSet(List<Edge> newSet){
-    	
-    }
+//    public void replaceEdgeSet(List<Edge> newSet){
+//    	
+//    }
     
     public void addNode(Node n){
         n.index = index;
@@ -352,10 +355,16 @@ public class MyGraph implements Type{
      * List Constructor
      */
     public MyGraph(List<Type> listElements){
-        nodes = new ArrayList<Node>();
-        for(Type elem: listElements){
-            listAddEnd(elem);
-        }
+    	this.nodes = new ArrayList<Node>();
+    	this.edges = new ArrayList<Edge>();
+    	this.numberOfNodes = 0;
+    	this.numberOfEdges = 0;
+    	adj = new Double[1000][1000];
+    	this.index = 0;
+    	for(Type elem: listElements){
+    		Node n = new Node(elem);
+    		addNode(n);
+    	}
     }
 
     /**

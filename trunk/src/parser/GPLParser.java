@@ -1,4 +1,4 @@
-// Output created by jacc on Sun May 08 14:53:46 EDT 2011
+// Output created by jacc on Sun May 08 15:14:06 EDT 2011
 
 package parser;
 
@@ -3966,7 +3966,7 @@ class GPLParser implements GPLTokens {
   private void declareList(String type, String name, Object val){
     if(type.equals("Graph")){
         //System.out.println(val.get(3).getValue());
-       scopes.peek().put(name, (val==null ? new MyGraph() : new MyGraph(val)));
+       scopes.peek().put(name, (val==null ? new MyGraph() : new MyGraph()));
     }else{}
   }
   
