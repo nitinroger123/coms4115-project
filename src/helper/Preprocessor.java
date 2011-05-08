@@ -4,7 +4,11 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-
+/**
+ * preprocessor for stripping out comments and loading in functions
+ * @author nitin
+ *
+ */
 public class Preprocessor {
 	public ArrayList<String> functionDefinitions = new ArrayList<String>();
 	public ArrayList<String> code = new ArrayList<String>();
