@@ -1,3 +1,7 @@
 Graph a = [ 1,2,3,4]
 
-print(a)
+Node n = a.get(3)
+
+String s = n.getValue()
+
+s.print()
