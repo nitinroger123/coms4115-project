@@ -1,8 +1,8 @@
 package interpreter.types;
 
 /**
- * 
- * @author mk3245
+ * StringType class which mimics the String class of Java with few added functionalities 
+ * @author mohan
  *
  */
 public class StringType implements Type{
