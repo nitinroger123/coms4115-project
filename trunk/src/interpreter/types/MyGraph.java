@@ -169,6 +169,11 @@ public class MyGraph implements Type{
         return numberOfEdges;
     }
 
+    public MyGraph bfs(NumberType startNode) {
+        Node n = nodes.get((int)startNode.getDouble());
+        return bfs(n);
+    }
+    
     /**
      * Call the bfs with the copy of the start node.
      * Returns the resulting bfs graph. 
@@ -202,6 +207,10 @@ public class MyGraph implements Type{
         return bfsGraph;
     }
 
+    public MyGraph bfs(NumberType startNode, NumberType goalNode) {
+        return bfs(nodes.get(startNode.getInt()), nodes.get(goalNode.getInt()));
+    }
+    
     /**
      * Call the bfs with the copy of the start node and copy of the goal node.
      * Returns the resulting bfs graph. 
@@ -348,6 +357,10 @@ public class MyGraph implements Type{
         return (ArrayList<Edge>)edges;
     }
 
+    public MyGraph dfs(NumberType startIndex, NumberType goalIndex) {
+        return dfs(nodes.get(startIndex.getInt()), nodes.get(goalIndex.getInt()));
+    }
+    
     /**
      * Implemented a DFS from the start node to the goal node.
      * @param start
