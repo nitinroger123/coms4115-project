@@ -1,3 +1,11 @@
+def c()
+	exit
+end
+
 def a()
+	print("hello")
+end
+
+def b()
 	print("hello")
 end

@@ -16,6 +16,11 @@ if ($arg eq "compile") {
     print `javac helper/Preprocessor.java`;
     exit;
 }
-print `java helper.Preprocessor $arg`;
-print `cat toParser.gpl | java parser.Main toParser.gpl`;
 
+
+if (defined $arg) {
+print `java helper.Preprocessor $arg toParse.gpl`;
+print `cat toParse.gpl | java parser.Main $arg`;
+} else {
+print `java parser.Main`;
+}

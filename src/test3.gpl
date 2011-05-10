@@ -1,0 +1,46 @@
+def printNumber(Number n)
+	print("Number is passed to printNumber ")
+	print(n)
+end
+
+Number i = 2
+Number j = 2
+Graph g
+
+g.addNode(0)
+g.addNode(1)
+g.addNode(2)
+g.addNode(3)
+g.addNode(4)
+g.addNode(5)
+
+g.addEdge(0, 1, 1)
+g.addEdge(0, 4, 3)
+g.addEdge(0, 3, 4)
+
+g.addEdge(1, 3, 4)
+g.addEdge(1, 4, 2)
+g.addEdge(2, 4, 4)
+
+g.addEdge(2, 5, 5)
+g.addEdge(3, 4, 4)
+g.addEdge(4, 5, 7)
+
+g.bfs(1)
+g.dfs(0,2)
+g.topologicalSort()
+
+while (i>0)
+	printNumber(i)
+	i = i-1
+end
+
+i = 4
+
+if (i%2 == 0)
+	print("i is even ")
+elsif (i%3 == 0)
+	print("i is divisible by 3 ")
+else
+    print("i is neither even nor divisible by 3 ")
+end
