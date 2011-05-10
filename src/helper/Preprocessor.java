@@ -156,7 +156,7 @@ public class Preprocessor {
 		for(int i=0;i<line.length();i++){
 			if(line.charAt(i) == '('){
 				st=line.substring(i+1, line.length()-1);
-				System.out.println(st);
+				//System.out.println(st);
 				break;
 			}
 		}
@@ -176,7 +176,7 @@ public class Preprocessor {
 		for(int i=0;i<line.length();i++){
 			if(line.charAt(i) == '('){
 				st=line.substring(i+1, line.length()-1);
-				System.out.println(st);
+				//System.out.println(st);
 				break;
 			}
 		}
@@ -315,6 +315,7 @@ public class Preprocessor {
 	 */
 	public static void main(String args[]) throws IOException{
 		Preprocessor p = new Preprocessor(args[0]);
+		
 		/*for(FunctionDef f : p.functions){
 			System.out.println("Name "+f.name);
 			System.out.println(f.code);
