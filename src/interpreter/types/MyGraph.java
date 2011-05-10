@@ -272,7 +272,7 @@ public class MyGraph implements Type{
      * Returns the miniumum spanning tree; Uses Kruskal's algo.
      * @return
      */
-    public MyGraph minimumSpanningTree(){
+    public MyGraph mst(){
         // initialize a priority queue for the MST
         PriorityQueue<Edge> queue = new PriorityQueue<Edge>(); 
         queue.addAll(edges); 

@@ -33,7 +33,7 @@ public class Main {
 
     public static void mstTest() {
         MyGraph graph = getTestGraph();
-        graph.minimumSpanningTree().visualize();
+        graph.mst().visualize();
     }
     
     public static void dfsTest() {
