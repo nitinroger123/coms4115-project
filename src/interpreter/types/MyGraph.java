@@ -82,7 +82,7 @@ public class MyGraph implements Type{
      * Adds a node to the graph
      * @param n
      */
-    public void addNode(Type value){
+    public void addNode(NumberType value){
         Node n = new Node(value);
         n.index = index;
         nodes.add(n);
@@ -103,7 +103,7 @@ public class MyGraph implements Type{
      * Adds a new edge to the Graph.
      * @param e
      */
-    public void addEdge(Type t1, Type t2, NumberType t3){
+    public void addEdge(NumberType t1, NumberType t2, NumberType t3){
         Edge e = new Edge(new Node(t1), new Node(t2), t3);
         edges.add(e);
         e.getFirstNode().addAdjacentNode(e.getSecondNode());
