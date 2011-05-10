@@ -736,12 +736,16 @@
         return theReturn;
     }
     
-    public Object evalFunction(String code, ArrayList<String> formalArgs, ArrayList<Object> actualArgs) {
+    public Object evalFunction(String code, ArrayList<String> formalArgs, ArrayList<Object> actualArgs, ArrayList<String> paramsType) {
         scopes.push(new HashMap<String, Object>());
         
         int i = 0;
         for (String a : formalArgs) {
-            scopes.peek().put(a, actualArgs.get(i));
+            if (paramsType.get(i).equals("Function")) {
+                scopes.get(0).put(a, actualArgs.get(i));
+            } else {
+                scopes.peek().put(a, actualArgs.get(i));
+            }
             i++;
         }
         eval(code);
@@ -894,8 +898,8 @@ declaration : TYPE ID '=' expr              {declare(((StringType)($1.val)).getV
 			| TYPE ID                       {declare(((StringType)($1.val)).getValue(),((StringType)($2.val)).getValue(),null);}
 			;
 assignment	: ID '=' expr                   {modify(((StringType)($1.val)).getValue(), $3.val); setReturn($3); }
-			| ID '=' '[' listofexpr ']'		    {declareList(((StringType)($1.val)).getValue(),((StringType)($2.val)).getValue(),$5.val); }
-			;                                   /* TODO: FIX ABOVE */
+			| ID '=' '[' listofexpr ']'		    {declareList(null,((StringType)($1.val)).getValue(),$4.val); setReturn(new SemanticWrapper(lookup(((StringType)($1.val)).getValue())));}
+			;                                  
 listofexpr: expr ',' listofexpr				{((ArrayList<Object>)$$.val).add(0,$1.val);}
 			| expr					{$$ = new SemanticWrapper(new ArrayList<Object>()); ((ArrayList<Object>)($$.val)).add($1.val);}
 			;
@@ -1027,7 +1031,7 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup(((StringType)($
         System.exit(1);
     }
     
-    lexer.evalFunction(f.code, f.args, args);
+    lexer.evalFunction(f.code, f.args, args, f.paramsType);
     
     return lexer.lastReturn;
   }
@@ -1080,13 +1084,18 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup(((StringType)($
         scopes.peek().put(name, (val==null ? new MyGraph() : (MyGraph)val));
     } else if (type.equals("String")) {
         scopes.peek().put(name, (val==null ? new StringType() : (StringType)val));
+    } else if (type.equals("Function")) {
+        scopes.get(0).put(name, (val==null ? new Function() : (Function)val));
     }
   }
   
   private void declareList(String type, String name, Object val){
-    if(type.equals("Graph")){
-       scopes.peek().put(name, (val==null ? new MyGraph() : new MyGraph((List<Type>)val)));
-    }else{
+    //Assignment
+    if (type==null) {
+        scopes.peek().put(name, (val==null ? new MyGraph() : new MyGraph((List<Type>)val)));
+    } else if (type.equals("Graph")){
+        scopes.peek().put(name, (val==null ? new MyGraph() : new MyGraph((List<Type>)val)));
+    } else {
         System.out.print("Type " + type + " does not support instantiation with a list!");
         System.exit(1);
     }
