@@ -101,7 +101,20 @@ public class MyGraph implements Type{
      * @param e
      */
     public void addEdge(NumberType t1, NumberType t2, NumberType t3){
-        Edge e = new Edge(new Node(t1), new Node(t2), t3);
+        Node n1, n2;
+        if(t1.getInt() < nodes.size()) {
+            n1 = nodes.get(t1.getInt()); 
+        }
+        else {
+            n1 = new Node(t1);
+        }
+        if(t2.getInt() < nodes.size()) {
+            n2 = nodes.get(t2.getInt()); 
+        }
+        else {
+            n2 = new Node(t2);
+        }
+        Edge e = new Edge(n1, n2, t3);
         addEdge2(e);
     }
     
