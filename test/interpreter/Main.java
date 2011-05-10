@@ -10,8 +10,9 @@ import interpreter.types.NumberType;
 public class Main {
     public static void main(String args[]){
 //        mstTest();
-        dfsTest();
+//        dfsTest();
 //        bfsTest();
+        spathTest();
     }
 
     // Graph from http://en.wikipedia.org/wiki/File:Msp1.jpg
@@ -51,6 +52,11 @@ public class Main {
         Node n1 = testGraph.getNodeByInt(0);
         Node n5 = testGraph.getNodeByInt(5);
         testGraph.bfsBetweenNodes2(n1,n5).visualize();
+    }
+    
+    public static void spathTest() {
+        MyGraph testGraph = getTestGraph();
+        System.out.println(testGraph.spath(new NumberType(0), new NumberType(3)).getDouble());
     }
 }
 

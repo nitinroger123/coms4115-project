@@ -41,7 +41,7 @@ public class MyGraph implements Type{
     public Double[][] getAdjMatrix(){
         for(int i=0;i<numberOfNodes;i++){
             for(int j=0;j<numberOfNodes;j++){
-                adj[i][j] =0.0;
+                adj[i][j]  = Double.MAX_VALUE;
             }
         }
         for(Edge e : edges){
@@ -601,6 +601,24 @@ public class MyGraph implements Type{
         }
     }
 
+    /**
+     * Gets the all pairs shortest part adjacency matrix.
+     * @return
+     */
+    public NumberType spath(NumberType start , NumberType end ){
+        Double [][] adj = this.getAdjMatrix();
+        for(int k = 0 ; k< numberOfNodes; k++){
+            for(int i=0;i<numberOfNodes;i++){
+                for(int j=0;j<numberOfNodes;j++){
+                    adj[i][j] = Math.min(adj[i][j], adj[i][k]+adj[k][j]);
+                }
+            }
+        }
+
+        return new NumberType(adj[start.getInt()][end.getInt()]);
+    }
+    
+    
     /**
      * Gets the all pairs shortest part adjacency matrix.
      * @return
