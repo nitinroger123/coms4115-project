@@ -1,6 +1,10 @@
 #This is a comment
 def thisIsAFunction(  Number i,  String s,  Graph g )
 	print("hello") #This is also a comment
+	while(1)
+		if()
+		end
+	end
 end
 
 def b(Graph gg)
