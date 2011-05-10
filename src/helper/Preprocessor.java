@@ -155,7 +155,7 @@ public class Preprocessor {
 		String st = ""; 
 		for(int i=0;i<line.length();i++){
 			if(line.charAt(i) == '('){
-				st=line.substring(i+1, line.length());
+				st=line.substring(i+1, line.length()-1);
 				System.out.println(st);
 				break;
 			}
@@ -168,6 +168,29 @@ public class Preprocessor {
 			types.add(s);
 		}
 		return types;
+	}
+	
+	private ArrayList<String> getArgs (String line){
+		ArrayList<String> arguments = new ArrayList<String>();
+		String st = ""; 
+		for(int i=0;i<line.length();i++){
+			if(line.charAt(i) == '('){
+				st=line.substring(i+1, line.length()-1);
+				System.out.println(st);
+				break;
+			}
+		}
+		String args [] = st.split(",");
+		for(int i=0; i< args.length;i++){
+			args[i] = args[i].replaceAll("^\\s+", "");
+			String temp []= args[i].split(" ");
+			String s = "";
+			if(temp.length > 1){
+				s = temp[1].replaceAll("^\\s+", "");
+			}
+			arguments.add(s);
+		}
+		return arguments;
 	}
 	/**
 	 * Private method to strip out all functions and store them in the arrayList
@@ -196,6 +219,7 @@ public class Preprocessor {
 				function.name = name;
 				function.paramsType = params;
 				function.code = code;
+				function.args = getArgs(line);
 				insideFunction = true;
 				functionStack.push(name);
 				continue;
@@ -295,6 +319,7 @@ public class Preprocessor {
 			System.out.println("Name "+f.name);
 			System.out.println(f.code);
 			System.out.println(f.paramsType.toString());
+			System.out.println(f.args.toString());
 		}*/
 		
 	}
