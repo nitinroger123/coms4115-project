@@ -1,4 +1,7 @@
-//GPL grammar
+/**
+*   This is the frontend implementation of the GPL interpreter
+*   @author Yufei Liu and Jacob Jensen
+*/
 
 %{
   import java.util.*;
@@ -31,8 +34,9 @@
 	private int lastChar = 32;
     private int token;
     private SemanticWrapper yylval;
-    private boolean toSkip = false;
-    private int skipCounter = 0;
+    private Stack<Boolean> toSkip = new Stack<Boolean>();
+    private Stack<Boolean> ifEvaluatedToTrue = new Stack<Boolean>();
+    private Stack<Integer> skipCounter = new Stack<Integer>();
     
     //This tells the lexer to start recording the character stream (used for backtracking)
     private boolean record = false;
@@ -56,11 +60,6 @@
         inputs.push(new InputStreamReader(System.in));
     }
     
-    public GPLLexer(StringReader reader, Stack<HashMap<String, Object>> scopes) {
-        inputs.push(reader);
-        this.scopes = scopes;
-    }
-  
     public Stack<HashMap<String, Object>> getScopes() {
         return scopes;
     }
@@ -75,7 +74,7 @@
                     whileBodies.set(i, whileBodies.get(i) + (char)c);
                 }
             }
-            //if (!toSkip) System.out.println(((char)c=='\n' ? "NL" : (char)c) + " : " + c);
+            //System.out.println((toSkip.size()==0 || !toSkip.peek() ? "" : " -- ") + ((char)c=='\n' ? "NL" : (char)c) + " : " + c);
             return c;
         } catch (Exception e) {
             return -1;
@@ -108,19 +107,11 @@
         }
     }
     
-    //Skip to the next elsif, else, or end
-    private int skip() {
-        toSkip = true;
-        skipCounter=0;
-        return nextToken();
-    }
-    
     /** Read the next token and return the
      *  corresponding integer code.
      */
     public int nextToken() {
     
-        //System.out.println("Tokening...");
 	    int c = lastChar;
         s="";
         
@@ -132,19 +123,21 @@
             lastChar = '\n';
             return nextToken();
         }
+        
         if (inLiteral) {
             while (c!='"') {
                 s += Character.toString((char)c);
                 c = nextChar();
             }
             inLiteral = false;
-            if (!toSkip) {
-                yylval = new SemanticWrapper(s.substring(1,s.length()));
+            if (toSkip.size()==0 || !toSkip.peek()) {
+                yylval = new SemanticWrapper(new StringType(s.substring(1,s.length())));
                 return token=STRING_LITERAL;
             } else {
                 return nextToken();
             }
         }
+        
 		while (c==32 || c==11 || c==13 || c=='\t') {
 			c=nextChar();
 		}
@@ -152,22 +145,21 @@
             return (token=ENDINPUT);
         }
         if (c == '\n') {
-            if (!toSkip) {
+            if (toSkip.size()==0 || !toSkip.peek()) {
                 return token=NL;
             } else {
                 return nextToken();
             }
         }
         
+        
         lastChar=32;
-
-
         
 		//Take care of all the special one-character tokens
 		switch (c) {
           case '+' : 
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token='+';
                     } else {
                         return nextToken();
@@ -175,7 +167,7 @@
                 }
           case '-' : 
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token='-';
                     } else {
                         return nextToken();
@@ -183,7 +175,7 @@
                 }
           case '*' : 
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token='*';
                     } else {
                         return nextToken();
@@ -191,7 +183,7 @@
                 }
           case '/' : 
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token='/';
                     } else {
                         return nextToken();
@@ -199,7 +191,7 @@
                 }
           case '%' : 
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token='%';
                     } else {
                         return nextToken();
@@ -207,7 +199,7 @@
                 }
           case '^' : 
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token='^';
                     } else {
                         return nextToken();
@@ -215,7 +207,7 @@
                 }
 		  case '(' : 
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token='(';
                     } else {
                         return nextToken();
@@ -223,7 +215,7 @@
                 }
           case ')' : 
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token=')';
                     } else {
                         return nextToken();
@@ -231,7 +223,7 @@
                 }
            case '[' : 
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token='[';
                     } else {
                         return nextToken();
@@ -239,23 +231,15 @@
                 }
           case ']' : 
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token=']';
                     } else {
                         return nextToken();
                     }
                 }
 		  case '=' : 
-                    /*
-                    lastChar = c;
-                    c = nextChar();
-                    if (c=='=') {
-                        lastChar=32;
-                        return token=EQ;
-                    }
-                    */
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token='=';
                     } else {
                         return nextToken();
@@ -263,23 +247,55 @@
                 }
           case '>' : 
                 { 
-                    if (!toSkip) {
-                        return token='>';
+                    if (toSkip.size()==0 || !toSkip.peek()) {
+                        return token=GT;
+                    } else {
+                        return nextToken();
+                    }
+                }
+          case '~' :
+                {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
+                        return token=EQ;
+                    } else {
+                        return nextToken();
+                    }
+                }
+          case '`' :
+                {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
+                        return token=NE;
                     } else {
                         return nextToken();
                     }
                 }
 		  case '<' : 
                 { 
-                    if (!toSkip) {
-                        return token='<';
+                    if (toSkip.size()==0 || !toSkip.peek()) {
+                        return token=LT;
+                    } else {
+                        return nextToken();
+                    }
+                }
+          case '@' : 
+                { 
+                    if (toSkip.size()==0 || !toSkip.peek()) {
+                        return token=GE;
+                    } else {
+                        return nextToken();
+                    }
+                }
+          case '$' : 
+                { 
+                    if (toSkip.size()==0 || !toSkip.peek()) {
+                        return token=LE;
                     } else {
                         return nextToken();
                     }
                 }
           case ',' : 
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token=',';
                     } else {
                         return nextToken();
@@ -287,7 +303,7 @@
                 }
 		  case '.' : 
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token='.';
                     } else {
                         return nextToken();
@@ -295,7 +311,7 @@
                 }
 		  case '!' : 
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token='!';
                     } else {
                         return nextToken();
@@ -303,7 +319,7 @@
                 }
 		  case '&' : 
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token='&';
                     } else {
                         return nextToken();
@@ -311,7 +327,7 @@
                 }
           case '|' :
                 { 
-                    if (!toSkip) {
+                    if (toSkip.size()==0 || !toSkip.peek()) {
                         return token='|';
                     } else {
                         return nextToken();
@@ -323,109 +339,174 @@
                      {inComment = true; return nextToken();}
 		}
         
+        
 		while ((c>=65 && c<=90) || (c>=97 && c<=122) || (c>=48 && c<=57) || (c==34) || (s.matches("[0-9]+") && c=='.')) {
 			if (c<0) break;
 			s+=Character.toString((char)c);
 			c=nextChar();
 		}
         
-        //System.out.println("And s is: " + s);
-        
         lastChar = c;
-        
             if (s.matches("([+-]?[0-9]*\\.[0-9]+)|([+-]?[0-9]+)")) {
-                if (!toSkip) {
+                if (toSkip.size()==0 || !toSkip.peek()) {
                     yylval = new SemanticWrapper(new NumberType(Double.parseDouble(s)));
+                    
                     return token=NUMBER;
                 } else {
                     return nextToken();
                 }
             } else if (s.equals("Number")||s.equals("Graph")||s.equals("String")||s.equals("Function")) {
-                if (!toSkip) {
-                    yylval = new SemanticWrapper(s);
+                System.out.println("Number detected!");
+                if (toSkip.size()==0 || !toSkip.peek()) {
+                    yylval = new SemanticWrapper(new StringType(s));
                     return token=TYPE;
                 } else {
                     return nextToken();
                 }
             } else if (s.equals("print")) {
-                //System.out.println("Reached print!");
-                if (!toSkip) {
+                
+                if (toSkip.size()==0 || !toSkip.peek()) {
                     return token=PRINT;
                 } else {
                     return nextToken();
                 }
             } else if (s.equals("include")) {
-                if (!toSkip) {
+                if (toSkip.size()==0 || !toSkip.peek()) {
                     return token=INCLUDE;
                 } else {
                     return nextToken();
                 }
-            } else if (s.equals("def")) {
-                if (!toSkip) {
-                    scopes.push(new HashMap<String, Object>());
-                    return token=DEF;
-                } else {
-                    skipCounter++;
+            } else if (s.equals("if")) {
+            
+                //System.out.println("reached if at depth " + (toSkip.size()+1));
+                
+                if (toSkip.size()>0 && toSkip.peek()) {
+                    //System.out.println("this if is to be ignored due to inheritance!");
+                    skipCounter.set(skipCounter.size()-1, skipCounter.peek()+1);
+                    //System.out.println("- if pushed toSkip!");
+                    ifEvaluatedToTrue.push(false);
+                    toSkip.push(true);
+                    blockTypes.push(0);
+                    skipCounter.push(0);
                     return nextToken();
                 }
-            } else if (s.equals("if")) {
-                //System.out.println("reached if!");
-            
-                if (!toSkip) {
+                
+                if (toSkip.size()==0 || !toSkip.peek()) {
+                    //System.out.println("this if is not to be ignored!");
                     blockTypes.push(0);
                     boolean decision = eval(getLine());
-                    
+                    //System.out.println("if evaluated to: " + decision);
+                    //System.out.println("- if pushed toSkip!");
                     if (decision) {
+                        toSkip.push(false);
+                        ifEvaluatedToTrue.push(true);
+                        skipCounter.push(0);
                         scopes.push(new HashMap<String, Object>());
                         return nextToken();
                     } else {
-                        return skip();
+                        //System.out.println("About to skip!");
+                        ifEvaluatedToTrue.push(false);
+                        toSkip.push(true);
+                        skipCounter.push(0);
+                        return nextToken();
                     }
                 } else {
-                    skipCounter++;
+                    //System.out.println("this if is to be ignored!");
+                    skipCounter.set(skipCounter.size()-1, skipCounter.peek()+1);
+                    System.out.println("- if pushed toSkip!");
+                    ifEvaluatedToTrue.push(false);
+                    toSkip.push(true);
+                    blockTypes.push(0);
+                    skipCounter.push(0);
                     return nextToken();
                 }
                 
             } else if (s.equals("elsif")) {
-                if (!toSkip) {
+            
+                //System.out.println("reached elsif at depth " + toSkip.size());
+                //System.out.println("   toSkip: " + toSkip.peek());
+                //System.out.println("   skipCounter: " + skipCounter.peek());
+                //System.out.println("   ifEvaluatedToTrue: " + ifEvaluatedToTrue.peek());
+                
+                if (toSkip.size()>1 && toSkip.get(toSkip.size()-2)) {
+                    //System.out.println("this elsif is to be ignored due to inheritance!");
+                    return nextToken();
+                }
+                
+                if (!toSkip.peek()) {
+                    //System.out.println("this elsif is not to be ignored!");
+                    //System.out.println("if evaluated to true, ignore elsif!");
+                    toSkip.set(toSkip.size()-1, true);
                     scopes.pop();
-                    return skip();
+                    return nextToken();
                     
                 } else {
-                    if (skipCounter>0) {
+                    //System.out.println("this elsif is to be ignored!");
+                    if (skipCounter.peek()>0) {
                         return nextToken();
                     }
                     String restOfLine = getLine();
+                    
+                    //System.out.println("Line to be evaluated:" + restOfLine);
+                    toSkip.set(toSkip.size()-1, false);
                     nextToken();
+                    lastChar=10;
+                    
                     boolean decision = eval(restOfLine);
                     
+                    //System.out.println("elsif decision: "+ decision);
                     if (decision) {
+                        
                         scopes.push(new HashMap<String, Object>());
                         return nextToken();
                     } else {
-                        return skip();
+                        toSkip.set(toSkip.size()-1, true);
+                        skipCounter.set(skipCounter.size()-1, 0);
+                        return nextToken();
                     }
                 }
             } else if (s.equals("else")) {
-                if (!toSkip) {
+                //System.out.println("else reached at depth " + toSkip.size());
+                //System.out.println("   toSkip: " + toSkip.peek());
+                //System.out.println("   skipCounter: " + skipCounter.peek());
+                //System.out.println("   ifEvaluatedToTrue: " + ifEvaluatedToTrue.peek());
+                
+                if (toSkip.size()>1 && toSkip.get(toSkip.size()-2)) {
+                    System.out.println("this else is to be ignored due to inheritance!");
+                    return nextToken();
+                }
+                
+                if (!toSkip.peek()) {
+                    //System.out.println("this else is not to be ignored!");
                     scopes.pop();
-                    return skip();
-                } else {
-                    if (skipCounter>0) {
+                    toSkip.set(toSkip.size()-1, true);
+                    skipCounter.set(skipCounter.size()-1, 0);
+                    return nextToken();
+                } else if (toSkip.peek() && ifEvaluatedToTrue.peek()) {
+                    //System.out.println("this else is to be ignored since if evaluated to true!");
+                    toSkip.set(toSkip.size()-1, true);
+                    skipCounter.set(skipCounter.size()-1, 0);
+                    return nextToken();
+                } else{
+                    //System.out.println("this else is to be ignored!");
+                
+                    if (skipCounter.peek()>0) {
                         return nextToken();
                     }
-                    toSkip=false;
+                    
+                    toSkip.set(toSkip.size()-1, false);
                     scopes.push(new HashMap<String, Object>());
                     return nextToken();
                 }
             } else if (s.equals("while")) {
             
-                if (!toSkip) {
+                if (toSkip.size()==0 || !toSkip.peek()) {
                     blockTypes.push(1);
                     String cond = getLine();
                     boolean decision = eval(cond);
                     
                     if (decision) {
+                    
                         if (!record) record = true;
                         whileBodies.push("");
                         whileConditions.push(cond);
@@ -433,25 +514,25 @@
                         scopes.push(new HashMap<String, Object>());
                         recordCap++;
                         
-                        //System.out.println("Noticed while..." + recordLow + "," + recordCap);
-                        
                         return nextToken();
                     } else {
-                        return skip();
+                        
+                        scopes.push(new HashMap<String, Object>());
+                        return nextToken();
                     }
                 } else {
-                    skipCounter++;
+                    skipCounter.set(skipCounter.size()-1, skipCounter.peek()+1);
                     return nextToken();
                 }
             } else if (s.equals("next")) {
-                if (!toSkip) {
+                if (toSkip.size()==0 || !toSkip.peek()) {
                     scopes.pop();
                     return token=NEXT;
                 } else {
                     return nextToken();
                 }
             } else if (s.equals("last")) {
-                if (!toSkip) {
+                if (toSkip.size()==0 || !toSkip.peek()) {
                     scopes.pop();
                     return token=LAST;
                 } else {
@@ -459,9 +540,13 @@
                 }
                 
             } else if (s.equals("end")) {
-                if (!toSkip) {
+            
+                //Not to be skipped
+                if (toSkip.size()==0 || !toSkip.peek()) {
+                
                     //This is the end tag for a while loop
                     if (blockTypes.peek()==1) {
+                    
                         //Strip the "end" line from the while body
                         
                         String whileBody = whileBodies.peek().substring(0,whileBodies.peek().length()-4);
@@ -474,8 +559,6 @@
                         //System.out.println("First noticed end..." + recordLow + "," + recordCap);
                         
                         while (eval(cond)) {
-                            
-                        
                             recordLow = whileBodies.size();
                             recordCap = whileBodies.size();
                             
@@ -492,25 +575,33 @@
                         whileBodies.pop();
                         whileConditions.pop();
                         if (whileBodies.size()==0) record = false;
-                    } 
-                    blockTypes.pop();
-                    scopes.pop();
+                    } else {
+                        //System.out.println("- end popped toSkip 1!");
+                        blockTypes.pop();
+                        toSkip.pop();
+                        ifEvaluatedToTrue.pop();
+                        skipCounter.pop();
+                        scopes.pop();
+                    }
                     return nextToken();
                 } else {
-                    if (skipCounter>0) {
-                        skipCounter--;
+                        if (skipCounter.size()>1 && skipCounter.get(skipCounter.size()-2)>0) {
+                            skipCounter.set(skipCounter.size()-2, skipCounter.get(skipCounter.size()-2)-1);
+                        }
+                        
+                        //System.out.println("- end popped toSkip 2!");
+                        blockTypes.pop();
+                        toSkip.pop();
+                        ifEvaluatedToTrue.pop();
+                        skipCounter.pop();
                         return nextToken();
-                    }
-                    blockTypes.pop();
-                    toSkip=false;
-                    return nextToken();
                 }
             } else if (s.equals("exit")) {
                 return token=EXIT;
             } else if (s.equals("return")) {
                 return token=RETURN;
             } else if (s.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
-                yylval = new SemanticWrapper(s);
+                yylval = new SemanticWrapper(new StringType(s));
                 return token=ID;
             }
             
@@ -520,6 +611,8 @@
     /** Return the token code for the current lexeme.
      */
     public int getToken() {
+        //System.out.println("getToken called, to return: " + token);
+        if (token==0) return nextToken();
         return token;
     }
 	
@@ -532,14 +625,27 @@
     */
     private boolean eval(String code, boolean interactive) {
         
+        lastChar = 32;
         
-        System.out.println("---------------- Eval: --------------");
-        System.out.println(code);
-        System.out.println("-------------------------------------");
+        //Strip off all extra new lines
+        while (code.charAt(0)=='\n' || code.charAt(0)==13) {
+            code = code.substring(1,code.length());
+        }
         
         inputs.push(new StringReader(code));
         
-        if (token == 0) token = 12;
+        /*
+        
+        System.out.println("---------------- Eval: --------------");
+        System.out.println(code);
+        System.out.println("-----------Scope content ------------");
+        for (HashMap<String,Object> h : scopes) {
+            System.out.println(h);
+        }
+        System.out.println("-------- Input stack size ----------");
+        System.out.println(inputs.size());
+        System.out.println("------------------------------------");
+        */
         
         boolean savedRecord = false;
         if (interactive) {
@@ -552,6 +658,8 @@
         liner.setInteractive(interactive);
         liner.parse();
         inputs.pop();
+        
+        lastChar = 32;
         
         if (interactive) {
             record = savedRecord;
@@ -569,10 +677,13 @@
   }
 
   class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
+      //String file = args[0];
+      //Preprocessor p = new Preprocessor(file);
       GPLLexer  lexer  = new GPLLexer();
       lexer.nextToken();
       GPLParser parser = new GPLParser(lexer);
+      //parser.setPreprocessor(p);
       parser.parse();
     }
 
@@ -588,7 +699,8 @@
 %token PRINT INCLUDE DEF IF ELSE ELSIF WHILE NEXT LAST END EXIT RETURN ENDPOINT
 %token NL
 %token TYPE ID STRING_LITERAL NUMBER
-%token '+' '-' '*' '/' '(' ')' '[' ']' '^' ',' '.' '!' '|' '&'
+%token '+' '-' '*' '/' '(' ')' '[' ']' '^' ',' '.' '!' '|' '&' '~' '`' '@' '$'
+%right EQ NE GE LE LT GT
 %left  '+' '-'
 %left  '*' '/' '%' 
 %right '^'
@@ -633,13 +745,6 @@ elsec	: ELSE action NL
 		| /* empty */
 		;
         
-cpop 	: '=' '='
-		| '!' '=' 
-		| '<'
-		| '<' '='
-		| '>'
-		| '>' '='
-		;
 defargs : TYPE ID ',' defargs
 		| TYPE ID
 		;
@@ -652,18 +757,18 @@ args 	: expr ',' args                     {((ArrayList<Object>)$$.val).add(0,$1.
 argswrapper 	: args                      {$$ = $1;}
 				| /* empty */               {$$ = new SemanticWrapper(null);}
 				;
-declaration : TYPE ID '=' expr              {declare((String)$1.val,(String)$2.val,$4.val);}
-            | TYPE ID '=' '[' listofexpr ']'    {declareList((String)$1.val,(String)$2.val,$5.val);}
-			| TYPE ID                       {declare((String)$1.val,(String)$2.val,null);}
+declaration : TYPE ID '=' expr              {declare(((StringType)($1.val)).getValue(),((StringType)($2.val)).getValue(),$4.val);}
+            | TYPE ID '=' '[' listofexpr ']'    {declareList(((StringType)($1.val)).getValue(),((StringType)($2.val)).getValue(),$5.val);}
+			| TYPE ID                       {declare(((StringType)($1.val)).getValue(),((StringType)($2.val)).getValue(),null);}
 			;
-assignment	: ID '=' expr                   {modify((String)$1.val, $3.val); setReturn($3); }
-			| ID '=' '[' listofexpr ']'		    {declareList((String)$1.val,(String)$2.val,$5.val);}
+assignment	: ID '=' expr                   {modify(((StringType)($1.val)).getValue(), $3.val); setReturn($3); }
+			| ID '=' '[' listofexpr ']'		    {declareList(((StringType)($1.val)).getValue(),((StringType)($2.val)).getValue(),$5.val);}
 			;
 listofexpr: expr ',' listofexpr				{((ArrayList<Object>)$$.val).add(0,$1.val);}
 			| expr					{$$ = new SemanticWrapper(new ArrayList<Object>()); ((ArrayList<Object>)($$.val)).add($1.val);}
 			;
 /* get rid of the char strings */
-expr		: ID '.' ID '(' argswrapper ')' {$$ = new SemanticWrapper(invoke((String)($1.val), (String)($3.val), ( $5.val==null ? null : (ArrayList<Object>)($5.val) )));}
+expr		: ID '.' ID '(' argswrapper ')' {$$ = new SemanticWrapper(invoke(((StringType)($1.val)).getValue(), ((StringType)($3.val)).getValue(), ( $5.val==null ? null : (ArrayList<Object>)($5.val) )));}
 			| ID '(' argswrapper ')'
 			| valexpr                       {$$.val = $1.val;}
 			;
@@ -676,12 +781,18 @@ valexpr 	: valexpr '+' valexpr            {$$ = new SemanticWrapper(NumberType.a
             | valexpr '%' valexpr            {$$ = new SemanticWrapper(NumberType.modulo((NumberType)($1.val),(NumberType)($3.val))); setReturn($$); }
             | valexpr '|' valexpr            {$$ = new SemanticWrapper((GPLHelper.isTrue(((NumberType)($1.val)).getDouble()) ? TRUE : (GPLHelper.isTrue(((NumberType)($3.val)).getDouble()) ? TRUE : FALSE))); setReturn($$); }
             | valexpr '&' valexpr            {$$ = new SemanticWrapper((GPLHelper.isTrue(((NumberType)($1.val)).getDouble()) ? (GPLHelper.isTrue(((NumberType)($3.val)).getDouble()) ? TRUE : FALSE) : FALSE)); setReturn($$); }
-			| '(' valexpr ')'               {$$ = new SemanticWrapper($2.val); setReturn($$); }
-			| symbol				           {$$ = new SemanticWrapper($1.val); setReturn($$); }
+			| valexpr EQ valexpr             {$$ = (compare($1, $3)==0 ? TRUE_WRAPPER : FALSE_WRAPPER); setReturn($$); }
+            | valexpr NE valexpr             {$$ = (compare($1, $3)==0 ? FALSE_WRAPPER : TRUE_WRAPPER); setReturn($$); }
+            | valexpr GT valexpr             {$$ = (compare($1, $3)>0 ? TRUE_WRAPPER : FALSE_WRAPPER); setReturn($$); }
+            | valexpr LT valexpr             {$$ = (compare($1, $3)<0 ? TRUE_WRAPPER : FALSE_WRAPPER); setReturn($$); }
+            | valexpr GE valexpr             {$$ = (compare($1, $3)>=0 ? TRUE_WRAPPER : FALSE_WRAPPER); setReturn($$); }
+            | valexpr LE valexpr             {$$ = (compare($1, $3)<=0 ? TRUE_WRAPPER : FALSE_WRAPPER); setReturn($$); }
+            | '(' valexpr ')'                {$$ = new SemanticWrapper($2.val); setReturn($$); }
+			| symbol				         {$$ = new SemanticWrapper($1.val); setReturn($$); }
 			;
-symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val)); setReturn($$); }
-			| NUMBER 				{$$ = new SemanticWrapper($1.val); setReturn($$); }
-			| STRING_LITERAL        {$$ = new SemanticWrapper(new StringType((String)($1.val)));}
+symbol		: ID                    {$$ = new SemanticWrapper(lookup(((StringType)($1.val)).getValue())); setReturn($$); }
+			| NUMBER 				{$$ = $1; setReturn($$); }
+			| STRING_LITERAL        {$$ = $1; setReturn($1);}
 			;
 
 %%
@@ -693,7 +804,10 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val)
   private Stack<HashMap<String, Object>> scopes;
   private boolean interactive;
   private SemanticWrapper returnVal = null;
-
+  private static final SemanticWrapper TRUE_WRAPPER = new SemanticWrapper(new NumberType(1.0));
+  private static final SemanticWrapper FALSE_WRAPPER = new SemanticWrapper(new NumberType(0.0));
+  private Preprocessor p;
+  
   public GPLParser(GPLLexer lexer) { 
     this.lexer = lexer; 
     scopes = lexer.getScopes();
@@ -788,6 +902,8 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val)
   }
   
   private void declare(String type, String name, Object val) {
+    System.out.println("declaring");
+  
     if (type.equals("Number")) {
         scopes.peek().put(name, (val==null ? new NumberType() : (NumberType)val));
     } else if (type.equals("Graph")) {
@@ -799,9 +915,12 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val)
   
   private void declareList(String type, String name, Object val){
     if(type.equals("Graph")){
-        //System.out.println(val.get(3).getValue());
-       scopes.peek().put(name, (val==null ? new MyGraph() : new MyGraph()));
-    }else{}
+       scopes.peek().put(name, (val==null ? new MyGraph() : new MyGraph((List<Type>)val)));
+    }else{
+        System.out.print("Type " + type + " does not support instantiation with a list!");
+        System.exit(1);
+    }
+    
   }
   
   private void setReturn(SemanticWrapper toReturn) {
@@ -810,9 +929,30 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup((String)$1.val)
     }
   }
   
+  public void setPreprocessor(Preprocessor p) {
+    this.p = p;
+  }
   
+  private int compare(SemanticWrapper a, SemanticWrapper b) {
+    if (a.val==null && b.val==null) {
+        return 0;
+    } else if (a.val==null || b.val ==null) {
+        //Non-null value is larger than null
+        return (a.val==null ? -1 : 1);
+    }
+    
+    if (a.val.getClass().toString().indexOf("NumberType")>0 || b.val.getClass().toString().indexOf("NumberType")>0) {
+        //System.out.println("Comparing number!");
+        return ((Double)(((NumberType)(a.val)).getDouble())).compareTo(((NumberType)(b.val)).getDouble());
+    } else {
+        //System.out.println("Comparing other!");
+        return ((Type)(a.val)).getValue().compareTo(((Type)(b.val)).getValue());
+    }
+    
+  }
   
   public SemanticWrapper getReturn() {
     return returnVal;
   }
+  
   
