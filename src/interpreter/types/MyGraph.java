@@ -220,12 +220,12 @@ public class MyGraph implements Type{
     /**
      * Prints nodes in index order
      */
-    public String printNodes(){
+    public StringType printNodes(){
         String output="";
         for(Node node : nodes){
             output+=(node.getValue()+" ");
         }
-        return output;
+        return new StringType(output);
     }
 
     /**
