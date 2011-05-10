@@ -50,7 +50,7 @@ public class Main {
         MyGraph testGraph = getTestGraph();
         Node n1 = testGraph.getNodeByInt(0);
         Node n5 = testGraph.getNodeByInt(5);
-        testGraph.bfs(n1,n5).visualize();
+        testGraph.bfsBetweenNodes2(n1,n5).visualize();
     }
 }
 
