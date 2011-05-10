@@ -60,6 +60,14 @@
         inputs.push(new InputStreamReader(System.in));
     }
     
+    public void addInput(Reader reader) {
+        inputs.push(reader);
+    }
+    
+    public void setScopes(Stack<HashMap<String, Object>> scopes) {
+        this.scopes = scopes;
+    }
+    
     public Stack<HashMap<String, Object>> getScopes() {
         return scopes;
     }
@@ -356,7 +364,6 @@
                     return nextToken();
                 }
             } else if (s.equals("Number")||s.equals("Graph")||s.equals("String")||s.equals("Function")) {
-                System.out.println("Number detected!");
                 if (toSkip.size()==0 || !toSkip.peek()) {
                     yylval = new SemanticWrapper(new StringType(s));
                     return token=TYPE;
@@ -532,7 +539,7 @@
                     return nextToken();
                 }
             } else if (s.equals("last")) {
-                if (toSkip.size()==0 || !toSkip.peek()) {
+                if (!toSkip.peek()) {
                     scopes.pop();
                     return token=LAST;
                 } else {
@@ -678,16 +685,63 @@
 
   class Main {
     public static void main(String[] args) throws Exception {
-      //String file = args[0];
-      //Preprocessor p = new Preprocessor(file);
-      GPLLexer  lexer  = new GPLLexer();
-      lexer.nextToken();
-      GPLParser parser = new GPLParser(lexer);
-      //parser.setPreprocessor(p);
-      parser.parse();
+      if (args.length==0) {
+          System.out.println("Welcome to GPL, enter commands to run:");
+            System.out.print("> ");
+            Scanner scanner = new Scanner(System.in);
+            String line;
+            
+            Stack<HashMap<String, Object>> scopes = null;
+            
+            
+            while ((line = scanner.nextLine())!=null) {
+                System.out.println(line);
+                
+                GPLLexer  lexer  = new GPLLexer();
+                if (scopes==null) {
+                    scopes = lexer.getScopes();
+                } else {
+                    lexer.setScopes(scopes);
+                }
+                
+                GPLParser liner = new GPLParser(lexer);
+                long start = System.currentTimeMillis();
+                lexer.addInput(new StringReader("\n"+replace(line)));
+                lexer.nextToken();
+                liner.setInteractive(true);
+                liner.parse();
+                
+                if (liner.getReturn()!=null) {
+                    System.out.println(((Type)(liner.getReturn().val)).getValue());
+                }
+                System.out.println("Successfully executed in " + ((System.currentTimeMillis() - start)/1000.0) + " seconds");
+                
+                System.out.print("> ");
+            }
+            scanner.close();
+
+      } else {
+          String file = args[0];
+          Preprocessor p = new Preprocessor(file);
+          GPLLexer  lexer  = new GPLLexer();
+          lexer.nextToken();
+          GPLParser parser = new GPLParser(lexer);
+          parser.setPreprocessor(p);
+          parser.parse();
+      }
     }
 
-    static void error(String msg) {
+    private static String replace(String s) {
+        s = s.replace("==", "~");
+        s = s.replace("!=", "`");
+        s = s.replace(">=", "@");
+		s = s.replace("<=", "$");
+		s = s.replace("&&", "&");
+		s = s.replace("||", "|");
+        return s;
+    }
+    
+    public static void error(String msg) {
       System.out.println("ERROR: " + msg);
       System.exit(1);
     }
@@ -779,8 +833,11 @@ valexpr 	: valexpr '+' valexpr            {$$ = new SemanticWrapper(NumberType.a
 			| valexpr '/' valexpr            {$$ = new SemanticWrapper(NumberType.divide((NumberType)($1.val),(NumberType)($3.val))); setReturn($$); }
 			| valexpr '^' valexpr            {$$ = new SemanticWrapper(NumberType.pow((NumberType)($1.val),(NumberType)($3.val))); setReturn($$); }
             | valexpr '%' valexpr            {$$ = new SemanticWrapper(NumberType.modulo((NumberType)($1.val),(NumberType)($3.val))); setReturn($$); }
-            | valexpr '|' valexpr            {$$ = new SemanticWrapper((GPLHelper.isTrue(((NumberType)($1.val)).getDouble()) ? TRUE : (GPLHelper.isTrue(((NumberType)($3.val)).getDouble()) ? TRUE : FALSE))); setReturn($$); }
-            | valexpr '&' valexpr            {$$ = new SemanticWrapper((GPLHelper.isTrue(((NumberType)($1.val)).getDouble()) ? (GPLHelper.isTrue(((NumberType)($3.val)).getDouble()) ? TRUE : FALSE) : FALSE)); setReturn($$); }
+            | valexpr '|' valexpr            {$$ = (GPLHelper.isTrue(((NumberType)($1.val)).getDouble()) ? TRUE_WRAPPER : (GPLHelper.isTrue(((NumberType)($3.val)).getDouble()) ? TRUE_WRAPPER : FALSE_WRAPPER)); setReturn($$); }
+            | valexpr '&' valexpr            {$$ = ( GPLHelper.isTrue(((NumberType)($1.val)).getDouble()) ? 
+                                                                        (GPLHelper.isTrue(((NumberType)($3.val)).getDouble()) ? TRUE_WRAPPER : FALSE_WRAPPER) : 
+                                                                        FALSE_WRAPPER); 
+                                             setReturn($$); }
 			| valexpr EQ valexpr             {$$ = (compare($1, $3)==0 ? TRUE_WRAPPER : FALSE_WRAPPER); setReturn($$); }
             | valexpr NE valexpr             {$$ = (compare($1, $3)==0 ? FALSE_WRAPPER : TRUE_WRAPPER); setReturn($$); }
             | valexpr GT valexpr             {$$ = (compare($1, $3)>0 ? TRUE_WRAPPER : FALSE_WRAPPER); setReturn($$); }
@@ -791,14 +848,12 @@ valexpr 	: valexpr '+' valexpr            {$$ = new SemanticWrapper(NumberType.a
 			| symbol				         {$$ = new SemanticWrapper($1.val); setReturn($$); }
 			;
 symbol		: ID                    {$$ = new SemanticWrapper(lookup(((StringType)($1.val)).getValue())); setReturn($$); }
-			| NUMBER 				{$$ = $1; setReturn($$); }
-			| STRING_LITERAL        {$$ = $1; setReturn($1);}
+			| NUMBER 				{$$ = $1; setReturn($$); setReturn($$);}
+			| STRING_LITERAL        {$$ = $1; setReturn($1); setReturn($$);}
 			;
 
 %%
   private GPLLexer lexer;
-  private final Double TRUE = new Double(1);
-  private final Double FALSE = new Double(0);
   
   private HashMap<String, Object> symbolTable = new HashMap<String, Object>();
   private Stack<HashMap<String, Object>> scopes;
@@ -902,8 +957,6 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup(((StringType)($
   }
   
   private void declare(String type, String name, Object val) {
-    System.out.println("declaring");
-  
     if (type.equals("Number")) {
         scopes.peek().put(name, (val==null ? new NumberType() : (NumberType)val));
     } else if (type.equals("Graph")) {
