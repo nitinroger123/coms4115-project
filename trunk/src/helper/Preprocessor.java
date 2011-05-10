@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Stack;
 /**
  * preprocessor for stripping out comments and loading in functions
  * @author nitin
@@ -17,9 +18,10 @@ public class Preprocessor {
 	public ArrayList<String> code = new ArrayList<String>();
  	public ArrayList<FunctionDef> functions = new ArrayList<FunctionDef>();
  	String fileName;
+ 	
 	public Preprocessor(String filename) throws IOException{
 		this.fileName = filename;
-		processFunctions(filename);
+		//processFunctions(filename);
 		removeCommentsAndReplaceCharacters();
 	}
 	
@@ -122,15 +124,120 @@ public class Preprocessor {
 			
 		}
 		writer.close();
+		processFuncs();
 		replaceSpecialCharacters();
 	}
 	
+	/**
+	 * pulls out the name of the method
+	 * @param line
+	 * @return
+	 */
+	private String getName(String line){
+		String name ="";
+		for(int i = 0 ; i<line.length(); i++){
+			if(line.charAt(i) == '('){
+				name = line.substring(3,i);
+				name = name.replaceAll("^\\s+", "");
+				break;
+			}
+		}
+		return name;
+	}
+	
+	/**
+	 * pulls out the type of the params of the function 
+	 * @param line
+	 * @return
+	 */
+	private ArrayList<String> getParams(String line){
+		ArrayList<String> types = new ArrayList<String>();
+		String st = ""; 
+		for(int i=0;i<line.length();i++){
+			if(line.charAt(i) == '('){
+				st=line.substring(i+1, line.length());
+				System.out.println(st);
+				break;
+			}
+		}
+		String args [] = st.split(",");
+		for(int i=0; i< args.length;i++){
+			args[i] = args[i].replaceAll("^\\s+", "");
+			String temp []= args[i].split(" ");
+			String s = temp[0].replaceAll("^\\s+", "");
+			types.add(s);
+		}
+		return types;
+	}
+	/**
+	 * Private method to strip out all functions and store them in the arrayList
+	 * @throws IOException 
+	 */
+	private void processFuncs() throws IOException {
+		BufferedReader reader = new BufferedReader(new FileReader("temp.gpl"));
+		BufferedWriter writer = new BufferedWriter(new FileWriter("temp1.gpl"));
+		String line ="";
+		Stack<String> functionStack = new Stack<String>();
+		boolean insideFunction = false;
+		String code ="";
+		FunctionDef function = null;
+		while((line = reader.readLine()) != null){
+			if(functionStack.isEmpty()){
+				insideFunction = false;
+			}	
+			
+			if(line.contains("def")){
+				//create a new function holder to add to functions
+				functionStack = new Stack<String>();
+				code = "";
+				function = new FunctionDef("", "", null);
+				String name = getName(line);
+				ArrayList<String> params = getParams(line);
+				function.name = name;
+				function.paramsType = params;
+				function.code = code;
+				insideFunction = true;
+				functionStack.push(name);
+				continue;
+			}
+			
+			if(insideFunction && line.contains("if")){
+				functionStack.push("if");
+			}
+			
+			if(insideFunction && line.contains("while")){
+				functionStack.push("while");
+			}
+			
+			if(insideFunction && line.contains("end")){
+				functionStack.pop();
+				if(functionStack.isEmpty()){
+					function.code = code;
+					this.functions.add(function);
+					insideFunction = false;
+					continue;
+				}
+			}
+			
+			if(!insideFunction){
+				writer.write(line+"\n");
+			}
+			
+			if(insideFunction){
+				code = code + line +"\n";
+			}
+			
+		}
+		writer.close();
+		
+	}
+
 	/**
 	 * Private method to replace special parser characters to the original form
 	 * @throws IOException 
 	 */
 	private void replaceSpecialCharacters() throws IOException {
-		BufferedReader reader = new BufferedReader(new FileReader("temp.gpl"));
+		BufferedReader reader = new BufferedReader(new FileReader("temp1.gpl"));
 		BufferedWriter writer = new BufferedWriter(new FileWriter("toParser.gpl"));
 		String s ="";
 		while((s = reader.readLine()) != null){
@@ -184,6 +291,11 @@ public class Preprocessor {
 	 */
 	public static void main(String args[]) throws IOException{
 		Preprocessor p = new Preprocessor(args[0]);
+		/*for(FunctionDef f : p.functions){
+			System.out.println("Name "+f.name);
+			System.out.println(f.code);
+			System.out.println(f.paramsType.toString());
+		}*/
 		
 	}
 
