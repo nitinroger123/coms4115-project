@@ -1,4 +1,4 @@
-// Output created by jacc on Sun May 08 15:14:06 EDT 2011
+// Output created by jacc on Tue May 10 00:05:41 EDT 2011
 
 package parser;
 
@@ -9,21 +9,28 @@ interface GPLTokens {
     int ELSIF = 3;
     int END = 4;
     int ENDPOINT = 5;
-    int EXIT = 6;
-    int ID = 7;
-    int IF = 8;
-    int INCLUDE = 9;
-    int LAST = 10;
-    int NEXT = 11;
-    int NL = 12;
-    int NUMBER = 13;
-    int PRINT = 14;
-    int RETURN = 15;
-    int STRING_LITERAL = 16;
-    int TYPE = 17;
-    int WHILE = 18;
-    int error = 19;
+    int EQ = 6;
+    int EXIT = 7;
+    int GE = 8;
+    int GT = 9;
+    int ID = 10;
+    int IF = 11;
+    int INCLUDE = 12;
+    int LAST = 13;
+    int LE = 14;
+    int LT = 15;
+    int NE = 16;
+    int NEXT = 17;
+    int NL = 18;
+    int NUMBER = 19;
+    int PRINT = 20;
+    int RETURN = 21;
+    int STRING_LITERAL = 22;
+    int TYPE = 23;
+    int WHILE = 24;
+    int error = 25;
     // '!' (code=33)
+    // '$' (code=36)
     // '%' (code=37)
     // '&' (code=38)
     // '(' (code=40)
@@ -34,11 +41,12 @@ interface GPLTokens {
     // '-' (code=45)
     // '.' (code=46)
     // '/' (code=47)
-    // '<' (code=60)
     // '=' (code=61)
-    // '>' (code=62)
+    // '@' (code=64)
     // '[' (code=91)
     // ']' (code=93)
     // '^' (code=94)
+    // '`' (code=96)
     // '|' (code=124)
+    // '~' (code=126)
 }
