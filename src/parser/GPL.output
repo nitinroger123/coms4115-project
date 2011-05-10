@@ -1,4 +1,4 @@
-// Output created by jacc on Tue May 10 03:44:31 EDT 2011
+// Output created by jacc on Tue May 10 05:21:55 EDT 2011
 
 state 0 (entry on start)
     $accept : _start $end
@@ -242,20 +242,13 @@ state 18 (entry on PRINT)
     . error
 
 state 19 (entry on RETURN)
-    action : RETURN_expr    (15)
+    action : RETURN_'(' expr ')'    (15)
     action : RETURN_    (16)
 
-    NUMBER shift 17
-    STRING_LITERAL shift 20
-    '(' shift 23
-    ID shift 47
+    '(' shift 46
     $end reduce 16
     NL reduce 16
     . error
-
-    expr goto 46
-    symbol goto 8
-    valexpr goto 9
 
 state 20 (entry on STRING_LITERAL)
     symbol : STRING_LITERAL_    (60)
@@ -286,13 +279,13 @@ state 21 (entry on TYPE)
     declaration : TYPE_ID '=' '[' listofexpr ']'    (33)
     declaration : TYPE_ID    (34)
 
-    ID shift 48
+    ID shift 47
     . error
 
 state 22 (entry on WHILE)
     action : WHILE_'(' expr ')' NL actions NL END    (10)
 
-    '(' shift 49
+    '(' shift 48
     . error
 
 state 23 (entry on '(')
@@ -301,11 +294,11 @@ state 23 (entry on '(')
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 51
+    ID shift 50
     . error
 
     symbol goto 8
-    valexpr goto 50
+    valexpr goto 49
 
 state 24 (entry on NL)
     start : start NL_block    (1)
@@ -330,7 +323,7 @@ state 24 (entry on NL)
     . error
 
     assignment goto 2
-    block goto 52
+    block goto 51
     declaration goto 4
     defun goto 5
     expr goto 6
@@ -344,11 +337,11 @@ state 25 (entry on EQ)
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 51
+    ID shift 50
     . error
 
     symbol goto 8
-    valexpr goto 53
+    valexpr goto 52
 
 state 26 (entry on GE)
     valexpr : valexpr GE_valexpr    (54)
@@ -356,11 +349,11 @@ state 26 (entry on GE)
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 51
+    ID shift 50
     . error
 
     symbol goto 8
-    valexpr goto 54
+    valexpr goto 53
 
 state 27 (entry on GT)
     valexpr : valexpr GT_valexpr    (52)
@@ -368,11 +361,11 @@ state 27 (entry on GT)
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 51
+    ID shift 50
     . error
 
     symbol goto 8
-    valexpr goto 55
+    valexpr goto 54
 
 state 28 (entry on LE)
     valexpr : valexpr LE_valexpr    (55)
@@ -380,11 +373,11 @@ state 28 (entry on LE)
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 51
+    ID shift 50
     . error
 
     symbol goto 8
-    valexpr goto 56
+    valexpr goto 55
 
 state 29 (entry on LT)
     valexpr : valexpr LT_valexpr    (53)
@@ -392,11 +385,11 @@ state 29 (entry on LT)
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 51
+    ID shift 50
     . error
 
     symbol goto 8
-    valexpr goto 57
+    valexpr goto 56
 
 state 30 (entry on NE)
     valexpr : valexpr NE_valexpr    (51)
@@ -404,11 +397,11 @@ state 30 (entry on NE)
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 51
+    ID shift 50
     . error
 
     symbol goto 8
-    valexpr goto 58
+    valexpr goto 57
 
 state 31 (entry on '%')
     valexpr : valexpr '%'_valexpr    (47)
@@ -416,11 +409,11 @@ state 31 (entry on '%')
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 51
+    ID shift 50
     . error
 
     symbol goto 8
-    valexpr goto 59
+    valexpr goto 58
 
 state 32 (entry on '&')
     valexpr : valexpr '&'_valexpr    (49)
@@ -428,11 +421,11 @@ state 32 (entry on '&')
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 51
+    ID shift 50
     . error
 
     symbol goto 8
-    valexpr goto 60
+    valexpr goto 59
 
 state 33 (entry on '*')
     valexpr : valexpr '*'_valexpr    (44)
@@ -440,11 +433,11 @@ state 33 (entry on '*')
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 51
+    ID shift 50
     . error
 
     symbol goto 8
-    valexpr goto 61
+    valexpr goto 60
 
 state 34 (entry on '+')
     valexpr : valexpr '+'_valexpr    (42)
@@ -452,11 +445,11 @@ state 34 (entry on '+')
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 51
+    ID shift 50
     . error
 
     symbol goto 8
-    valexpr goto 62
+    valexpr goto 61
 
 state 35 (entry on '-')
     valexpr : valexpr '-'_valexpr    (43)
@@ -464,11 +457,11 @@ state 35 (entry on '-')
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 51
+    ID shift 50
     . error
 
     symbol goto 8
-    valexpr goto 63
+    valexpr goto 62
 
 state 36 (entry on '/')
     valexpr : valexpr '/'_valexpr    (45)
@@ -476,11 +469,11 @@ state 36 (entry on '/')
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 51
+    ID shift 50
     . error
 
     symbol goto 8
-    valexpr goto 64
+    valexpr goto 63
 
 state 37 (entry on '^')
     valexpr : valexpr '^'_valexpr    (46)
@@ -488,11 +481,11 @@ state 37 (entry on '^')
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 51
+    ID shift 50
     . error
 
     symbol goto 8
-    valexpr goto 65
+    valexpr goto 64
 
 state 38 (entry on '|')
     valexpr : valexpr '|'_valexpr    (48)
@@ -500,16 +493,16 @@ state 38 (entry on '|')
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 51
+    ID shift 50
     . error
 
     symbol goto 8
-    valexpr goto 66
+    valexpr goto 65
 
 state 39 (entry on ID)
     defun : DEF ID_'(' defargswrapper ')' NL actions NL END    (6)
 
-    '(' shift 67
+    '(' shift 66
     . error
 
 state 40 (entry on '(')
@@ -519,13 +512,13 @@ state 40 (entry on '(')
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 47
+    ID shift 70
     ')' reduce 31
     . error
 
-    args goto 68
-    argswrapper goto 69
-    expr goto 70
+    args goto 67
+    argswrapper goto 68
+    expr goto 69
     symbol goto 8
     valexpr goto 9
 
@@ -542,7 +535,7 @@ state 42 (entry on '=')
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 47
+    ID shift 70
     '[' shift 73
     . error
 
@@ -556,7 +549,7 @@ state 43 (entry on '(')
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 47
+    ID shift 70
     . error
 
     expr goto 74
@@ -569,7 +562,7 @@ state 44 (entry on '(')
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 47
+    ID shift 70
     . error
 
     expr goto 75
@@ -582,72 +575,50 @@ state 45 (entry on '(')
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 47
+    ID shift 70
     . error
 
     expr goto 76
     symbol goto 8
     valexpr goto 9
 
-state 46 (entry on expr)
-    action : RETURN expr_    (15)
+state 46 (entry on '(')
+    action : RETURN '('_expr ')'    (15)
 
-    $end reduce 15
-    NL reduce 15
+    NUMBER shift 17
+    STRING_LITERAL shift 20
+    '(' shift 23
+    ID shift 70
     . error
+
+    expr goto 77
+    symbol goto 8
+    valexpr goto 9
 
 state 47 (entry on ID)
-    expr : ID_'.' ID '(' argswrapper ')'    (39)
-    expr : ID_'(' argswrapper ')'    (40)
-    symbol : ID_    (58)
-
-    '(' shift 40
-    '.' shift 41
-    ')' reduce 58
-    LT reduce 58
-    '&' reduce 58
-    '%' reduce 58
-    LE reduce 58
-    EQ reduce 58
-    $end reduce 58
-    '|' reduce 58
-    '^' reduce 58
-    ']' reduce 58
-    '/' reduce 58
-    NL reduce 58
-    GT reduce 58
-    '-' reduce 58
-    ',' reduce 58
-    '+' reduce 58
-    '*' reduce 58
-    NE reduce 58
-    GE reduce 58
-    . error
-
-state 48 (entry on ID)
     declaration : TYPE ID_'=' expr    (32)
     declaration : TYPE ID_'=' '[' listofexpr ']'    (33)
     declaration : TYPE ID_    (34)
 
-    '=' shift 77
+    '=' shift 78
     $end reduce 34
     NL reduce 34
     . error
 
-state 49 (entry on '(')
+state 48 (entry on '(')
     action : WHILE '('_expr ')' NL actions NL END    (10)
 
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 47
+    ID shift 70
     . error
 
-    expr goto 78
+    expr goto 79
     symbol goto 8
     valexpr goto 9
 
-state 50 (entry on valexpr)
+state 49 (entry on valexpr)
     valexpr : valexpr_'+' valexpr    (42)
     valexpr : valexpr_'-' valexpr    (43)
     valexpr : valexpr_'*' valexpr    (44)
@@ -678,10 +649,10 @@ state 50 (entry on valexpr)
     '/' shift 36
     '^' shift 37
     '|' shift 38
-    ')' shift 79
+    ')' shift 80
     . error
 
-state 51 (entry on ID)
+state 50 (entry on ID)
     symbol : ID_    (58)
 
     ')' reduce 58
@@ -705,14 +676,14 @@ state 51 (entry on ID)
     GE reduce 58
     . error
 
-state 52 (entry on block)
+state 51 (entry on block)
     start : start NL block_    (1)
 
     $end reduce 1
     NL reduce 1
     . error
 
-state 53 (entry on valexpr)
+state 52 (entry on valexpr)
     valexpr : valexpr_'+' valexpr    (42)
     valexpr : valexpr_'-' valexpr    (43)
     valexpr : valexpr_'*' valexpr    (44)
@@ -750,7 +721,7 @@ state 53 (entry on valexpr)
     ',' reduce 50
     . error
 
-state 54 (entry on valexpr)
+state 53 (entry on valexpr)
     valexpr : valexpr_'+' valexpr    (42)
     valexpr : valexpr_'-' valexpr    (43)
     valexpr : valexpr_'*' valexpr    (44)
@@ -788,7 +759,7 @@ state 54 (entry on valexpr)
     ',' reduce 54
     . error
 
-state 55 (entry on valexpr)
+state 54 (entry on valexpr)
     valexpr : valexpr_'+' valexpr    (42)
     valexpr : valexpr_'-' valexpr    (43)
     valexpr : valexpr_'*' valexpr    (44)
@@ -826,7 +797,7 @@ state 55 (entry on valexpr)
     ',' reduce 52
     . error
 
-state 56 (entry on valexpr)
+state 55 (entry on valexpr)
     valexpr : valexpr_'+' valexpr    (42)
     valexpr : valexpr_'-' valexpr    (43)
     valexpr : valexpr_'*' valexpr    (44)
@@ -864,7 +835,7 @@ state 56 (entry on valexpr)
     ',' reduce 55
     . error
 
-state 57 (entry on valexpr)
+state 56 (entry on valexpr)
     valexpr : valexpr_'+' valexpr    (42)
     valexpr : valexpr_'-' valexpr    (43)
     valexpr : valexpr_'*' valexpr    (44)
@@ -902,7 +873,7 @@ state 57 (entry on valexpr)
     ',' reduce 53
     . error
 
-state 58 (entry on valexpr)
+state 57 (entry on valexpr)
     valexpr : valexpr_'+' valexpr    (42)
     valexpr : valexpr_'-' valexpr    (43)
     valexpr : valexpr_'*' valexpr    (44)
@@ -940,7 +911,7 @@ state 58 (entry on valexpr)
     ',' reduce 51
     . error
 
-state 59 (entry on valexpr)
+state 58 (entry on valexpr)
     valexpr : valexpr_'+' valexpr    (42)
     valexpr : valexpr_'-' valexpr    (43)
     valexpr : valexpr_'*' valexpr    (44)
@@ -978,7 +949,7 @@ state 59 (entry on valexpr)
     GE reduce 47
     . error
 
-state 60 (entry on valexpr)
+state 59 (entry on valexpr)
     valexpr : valexpr_'+' valexpr    (42)
     valexpr : valexpr_'-' valexpr    (43)
     valexpr : valexpr_'*' valexpr    (44)
@@ -1016,7 +987,7 @@ state 60 (entry on valexpr)
     GE reduce 49
     . error
 
-state 61 (entry on valexpr)
+state 60 (entry on valexpr)
     valexpr : valexpr_'+' valexpr    (42)
     valexpr : valexpr_'-' valexpr    (43)
     valexpr : valexpr_'*' valexpr    (44)
@@ -1054,7 +1025,7 @@ state 61 (entry on valexpr)
     GE reduce 44
     . error
 
-state 62 (entry on valexpr)
+state 61 (entry on valexpr)
     valexpr : valexpr_'+' valexpr    (42)
     valexpr : valexpr '+' valexpr_    (42)
     valexpr : valexpr_'-' valexpr    (43)
@@ -1092,7 +1063,7 @@ state 62 (entry on valexpr)
     GE reduce 42
     . error
 
-state 63 (entry on valexpr)
+state 62 (entry on valexpr)
     valexpr : valexpr_'+' valexpr    (42)
     valexpr : valexpr_'-' valexpr    (43)
     valexpr : valexpr '-' valexpr_    (43)
@@ -1130,7 +1101,7 @@ state 63 (entry on valexpr)
     GE reduce 43
     . error
 
-state 64 (entry on valexpr)
+state 63 (entry on valexpr)
     valexpr : valexpr_'+' valexpr    (42)
     valexpr : valexpr_'-' valexpr    (43)
     valexpr : valexpr_'*' valexpr    (44)
@@ -1168,7 +1139,7 @@ state 64 (entry on valexpr)
     GE reduce 45
     . error
 
-state 65 (entry on valexpr)
+state 64 (entry on valexpr)
     valexpr : valexpr_'+' valexpr    (42)
     valexpr : valexpr_'-' valexpr    (43)
     valexpr : valexpr_'*' valexpr    (44)
@@ -1206,7 +1177,7 @@ state 65 (entry on valexpr)
     GE reduce 46
     . error
 
-state 66 (entry on valexpr)
+state 65 (entry on valexpr)
     valexpr : valexpr_'+' valexpr    (42)
     valexpr : valexpr_'-' valexpr    (43)
     valexpr : valexpr_'*' valexpr    (44)
@@ -1244,41 +1215,69 @@ state 66 (entry on valexpr)
     GE reduce 48
     . error
 
-state 67 (entry on '(')
+state 66 (entry on '(')
     defargswrapper : _    (27)
     defun : DEF ID '('_defargswrapper ')' NL actions NL END    (6)
 
-    TYPE shift 82
+    TYPE shift 83
     ')' reduce 27
     . error
 
-    defargs goto 80
-    defargswrapper goto 81
+    defargs goto 81
+    defargswrapper goto 82
 
-state 68 (entry on args)
+state 67 (entry on args)
     argswrapper : args_    (30)
 
     ')' reduce 30
     . error
 
-state 69 (entry on argswrapper)
+state 68 (entry on argswrapper)
     expr : ID '(' argswrapper_')'    (40)
 
-    ')' shift 83
+    ')' shift 84
     . error
 
-state 70 (entry on expr)
+state 69 (entry on expr)
     args : expr_',' args    (28)
     args : expr_    (29)
 
-    ',' shift 84
+    ',' shift 85
     ')' reduce 29
+    . error
+
+state 70 (entry on ID)
+    expr : ID_'.' ID '(' argswrapper ')'    (39)
+    expr : ID_'(' argswrapper ')'    (40)
+    symbol : ID_    (58)
+
+    '(' shift 40
+    '.' shift 41
+    ')' reduce 58
+    LT reduce 58
+    '&' reduce 58
+    '%' reduce 58
+    LE reduce 58
+    EQ reduce 58
+    $end reduce 58
+    '|' reduce 58
+    '^' reduce 58
+    ']' reduce 58
+    '/' reduce 58
+    NL reduce 58
+    GT reduce 58
+    '-' reduce 58
+    ',' reduce 58
+    '+' reduce 58
+    '*' reduce 58
+    NE reduce 58
+    GE reduce 58
     . error
 
 state 71 (entry on ID)
     expr : ID '.' ID_'(' argswrapper ')'    (39)
 
-    '(' shift 85
+    '(' shift 86
     . error
 
 state 72 (entry on expr)
@@ -1294,54 +1293,60 @@ state 73 (entry on '[')
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 47
+    ID shift 70
     . error
 
-    expr goto 86
-    listofexpr goto 87
+    expr goto 87
+    listofexpr goto 88
     symbol goto 8
     valexpr goto 9
 
 state 74 (entry on expr)
     action : IF '(' expr_')' NL actions NL elsec END    (9)
 
-    ')' shift 88
+    ')' shift 89
     . error
 
 state 75 (entry on expr)
     action : INCLUDE '(' expr_')'    (11)
 
-    ')' shift 89
+    ')' shift 90
     . error
 
 state 76 (entry on expr)
     action : PRINT '(' expr_')'    (12)
 
-    ')' shift 90
+    ')' shift 91
     . error
 
-state 77 (entry on '=')
+state 77 (entry on expr)
+    action : RETURN '(' expr_')'    (15)
+
+    ')' shift 92
+    . error
+
+state 78 (entry on '=')
     declaration : TYPE ID '='_expr    (32)
     declaration : TYPE ID '='_'[' listofexpr ']'    (33)
 
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 47
-    '[' shift 92
+    ID shift 70
+    '[' shift 94
     . error
 
-    expr goto 91
+    expr goto 93
     symbol goto 8
     valexpr goto 9
 
-state 78 (entry on expr)
+state 79 (entry on expr)
     action : WHILE '(' expr_')' NL actions NL END    (10)
 
-    ')' shift 93
+    ')' shift 95
     . error
 
-state 79 (entry on ')')
+state 80 (entry on ')')
     valexpr : '(' valexpr ')'_    (56)
 
     ')' reduce 56
@@ -1365,26 +1370,26 @@ state 79 (entry on ')')
     GE reduce 56
     . error
 
-state 80 (entry on defargs)
+state 81 (entry on defargs)
     defargswrapper : defargs_    (26)
 
     ')' reduce 26
     . error
 
-state 81 (entry on defargswrapper)
+state 82 (entry on defargswrapper)
     defun : DEF ID '(' defargswrapper_')' NL actions NL END    (6)
 
-    ')' shift 94
+    ')' shift 96
     . error
 
-state 82 (entry on TYPE)
+state 83 (entry on TYPE)
     defargs : TYPE_ID ',' defargs    (24)
     defargs : TYPE_ID    (25)
 
-    ID shift 95
+    ID shift 97
     . error
 
-state 83 (entry on ')')
+state 84 (entry on ')')
     expr : ID '(' argswrapper ')'_    (40)
 
     ')' reduce 40
@@ -1394,146 +1399,153 @@ state 83 (entry on ')')
     ',' reduce 40
     . error
 
-state 84 (entry on ',')
+state 85 (entry on ',')
     args : expr ','_args    (28)
 
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 47
+    ID shift 70
     . error
 
-    args goto 96
-    expr goto 70
+    args goto 98
+    expr goto 69
     symbol goto 8
     valexpr goto 9
 
-state 85 (entry on '(')
+state 86 (entry on '(')
     argswrapper : _    (31)
     expr : ID '.' ID '('_argswrapper ')'    (39)
 
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 47
+    ID shift 70
     ')' reduce 31
     . error
 
-    args goto 68
-    argswrapper goto 97
-    expr goto 70
+    args goto 67
+    argswrapper goto 99
+    expr goto 69
     symbol goto 8
     valexpr goto 9
 
-state 86 (entry on expr)
+state 87 (entry on expr)
     listofexpr : expr_',' listofexpr    (37)
     listofexpr : expr_    (38)
 
-    ',' shift 98
+    ',' shift 100
     ']' reduce 38
     . error
 
-state 87 (entry on listofexpr)
+state 88 (entry on listofexpr)
     assignment : ID '=' '[' listofexpr_']'    (36)
 
-    ']' shift 99
-    . error
-
-state 88 (entry on ')')
-    action : IF '(' expr ')'_NL actions NL elsec END    (9)
-
-    NL shift 100
+    ']' shift 101
     . error
 
 state 89 (entry on ')')
+    action : IF '(' expr ')'_NL actions NL elsec END    (9)
+
+    NL shift 102
+    . error
+
+state 90 (entry on ')')
     action : INCLUDE '(' expr ')'_    (11)
 
     $end reduce 11
     NL reduce 11
     . error
 
-state 90 (entry on ')')
+state 91 (entry on ')')
     action : PRINT '(' expr ')'_    (12)
 
     $end reduce 12
     NL reduce 12
     . error
 
-state 91 (entry on expr)
+state 92 (entry on ')')
+    action : RETURN '(' expr ')'_    (15)
+
+    $end reduce 15
+    NL reduce 15
+    . error
+
+state 93 (entry on expr)
     declaration : TYPE ID '=' expr_    (32)
 
     $end reduce 32
     NL reduce 32
     . error
 
-state 92 (entry on '[')
+state 94 (entry on '[')
     declaration : TYPE ID '=' '['_listofexpr ']'    (33)
 
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 47
+    ID shift 70
     . error
 
-    expr goto 86
-    listofexpr goto 101
+    expr goto 87
+    listofexpr goto 103
     symbol goto 8
     valexpr goto 9
 
-state 93 (entry on ')')
+state 95 (entry on ')')
     action : WHILE '(' expr ')'_NL actions NL END    (10)
 
-    NL shift 102
+    NL shift 104
     . error
 
-state 94 (entry on ')')
+state 96 (entry on ')')
     defun : DEF ID '(' defargswrapper ')'_NL actions NL END    (6)
 
-    NL shift 103
+    NL shift 105
     . error
 
-state 95 (entry on ID)
+state 97 (entry on ID)
     defargs : TYPE ID_',' defargs    (24)
     defargs : TYPE ID_    (25)
 
-    ',' shift 104
+    ',' shift 106
     ')' reduce 25
     . error
 
-state 96 (entry on args)
+state 98 (entry on args)
     args : expr ',' args_    (28)
 
     ')' reduce 28
     . error
 
-state 97 (entry on argswrapper)
+state 99 (entry on argswrapper)
     expr : ID '.' ID '(' argswrapper_')'    (39)
 
-    ')' shift 105
+    ')' shift 107
     . error
 
-state 98 (entry on ',')
+state 100 (entry on ',')
     listofexpr : expr ','_listofexpr    (37)
 
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 47
+    ID shift 70
     . error
 
-    expr goto 86
-    listofexpr goto 106
+    expr goto 87
+    listofexpr goto 108
     symbol goto 8
     valexpr goto 9
 
-state 99 (entry on ']')
+state 101 (entry on ']')
     assignment : ID '=' '[' listofexpr ']'_    (36)
 
     $end reduce 36
     NL reduce 36
     . error
 
-state 100 (entry on NL)
+state 102 (entry on NL)
     action : IF '(' expr ')' NL_actions NL elsec END    (9)
 
     EXIT shift 11
@@ -1551,21 +1563,21 @@ state 100 (entry on NL)
     '(' shift 23
     . error
 
-    actions goto 107
+    actions goto 109
     assignment goto 2
     declaration goto 4
     expr goto 6
-    action goto 108
+    action goto 110
     symbol goto 8
     valexpr goto 9
 
-state 101 (entry on listofexpr)
+state 103 (entry on listofexpr)
     declaration : TYPE ID '=' '[' listofexpr_']'    (33)
 
-    ']' shift 109
+    ']' shift 111
     . error
 
-state 102 (entry on NL)
+state 104 (entry on NL)
     action : WHILE '(' expr ')' NL_actions NL END    (10)
 
     EXIT shift 11
@@ -1583,15 +1595,15 @@ state 102 (entry on NL)
     '(' shift 23
     . error
 
-    actions goto 110
+    actions goto 112
     assignment goto 2
     declaration goto 4
     expr goto 6
-    action goto 108
+    action goto 110
     symbol goto 8
     valexpr goto 9
 
-state 103 (entry on NL)
+state 105 (entry on NL)
     defun : DEF ID '(' defargswrapper ')' NL_actions NL END    (6)
 
     EXIT shift 11
@@ -1609,23 +1621,23 @@ state 103 (entry on NL)
     '(' shift 23
     . error
 
-    actions goto 111
+    actions goto 113
     assignment goto 2
     declaration goto 4
     expr goto 6
-    action goto 108
+    action goto 110
     symbol goto 8
     valexpr goto 9
 
-state 104 (entry on ',')
+state 106 (entry on ',')
     defargs : TYPE ID ','_defargs    (24)
 
-    TYPE shift 82
+    TYPE shift 83
     . error
 
-    defargs goto 112
+    defargs goto 114
 
-state 105 (entry on ')')
+state 107 (entry on ')')
     expr : ID '.' ID '(' argswrapper ')'_    (39)
 
     ')' reduce 39
@@ -1635,53 +1647,53 @@ state 105 (entry on ')')
     ',' reduce 39
     . error
 
-state 106 (entry on listofexpr)
+state 108 (entry on listofexpr)
     listofexpr : expr ',' listofexpr_    (37)
 
     ']' reduce 37
     . error
 
-state 107 (entry on actions)
+state 109 (entry on actions)
     actions : actions_NL action    (8)
     action : IF '(' expr ')' NL actions_NL elsec END    (9)
 
-    NL shift 113
+    NL shift 115
     . error
 
-state 108 (entry on action)
+state 110 (entry on action)
     actions : action_    (7)
 
     NL reduce 7
     . error
 
-state 109 (entry on ']')
+state 111 (entry on ']')
     declaration : TYPE ID '=' '[' listofexpr ']'_    (33)
 
     $end reduce 33
     NL reduce 33
     . error
 
-state 110 (entry on actions)
+state 112 (entry on actions)
     actions : actions_NL action    (8)
     action : WHILE '(' expr ')' NL actions_NL END    (10)
 
-    NL shift 114
+    NL shift 116
     . error
 
-state 111 (entry on actions)
+state 113 (entry on actions)
     actions : actions_NL action    (8)
     defun : DEF ID '(' defargswrapper ')' NL actions_NL END    (6)
 
-    NL shift 115
+    NL shift 117
     . error
 
-state 112 (entry on defargs)
+state 114 (entry on defargs)
     defargs : TYPE ID ',' defargs_    (24)
 
     ')' reduce 24
     . error
 
-state 113 (entry on NL)
+state 115 (entry on NL)
     actions : actions NL_action    (8)
     elsec : _    (23)
     action : IF '(' expr ')' NL actions NL_elsec END    (9)
@@ -1699,20 +1711,20 @@ state 113 (entry on NL)
     TYPE shift 21
     WHILE shift 22
     '(' shift 23
-    ELSE shift 118
-    ELSIF shift 119
+    ELSE shift 120
+    ELSIF shift 121
     END reduce 23
     . error
 
     assignment goto 2
     declaration goto 4
-    elsec goto 116
+    elsec goto 118
     expr goto 6
-    action goto 117
+    action goto 119
     symbol goto 8
     valexpr goto 9
 
-state 114 (entry on NL)
+state 116 (entry on NL)
     actions : actions NL_action    (8)
     action : WHILE '(' expr ')' NL actions NL_END    (10)
 
@@ -1729,17 +1741,17 @@ state 114 (entry on NL)
     TYPE shift 21
     WHILE shift 22
     '(' shift 23
-    END shift 120
+    END shift 122
     . error
 
     assignment goto 2
     declaration goto 4
     expr goto 6
-    action goto 117
+    action goto 119
     symbol goto 8
     valexpr goto 9
 
-state 115 (entry on NL)
+state 117 (entry on NL)
     actions : actions NL_action    (8)
     defun : DEF ID '(' defargswrapper ')' NL actions NL_END    (6)
 
@@ -1756,29 +1768,29 @@ state 115 (entry on NL)
     TYPE shift 21
     WHILE shift 22
     '(' shift 23
-    END shift 121
+    END shift 123
     . error
 
     assignment goto 2
     declaration goto 4
     expr goto 6
-    action goto 117
+    action goto 119
     symbol goto 8
     valexpr goto 9
 
-state 116 (entry on elsec)
+state 118 (entry on elsec)
     action : IF '(' expr ')' NL actions NL elsec_END    (9)
 
-    END shift 122
+    END shift 124
     . error
 
-state 117 (entry on action)
+state 119 (entry on action)
     actions : actions NL action_    (8)
 
     NL reduce 8
     . error
 
-state 118 (entry on ELSE)
+state 120 (entry on ELSE)
     elsec : ELSE_action NL    (21)
 
     EXIT shift 11
@@ -1799,75 +1811,75 @@ state 118 (entry on ELSE)
     assignment goto 2
     declaration goto 4
     expr goto 6
-    action goto 123
+    action goto 125
     symbol goto 8
     valexpr goto 9
 
-state 119 (entry on ELSIF)
+state 121 (entry on ELSIF)
     elsec : ELSIF_'(' expr ')' NL action NL elsec    (22)
 
-    '(' shift 124
+    '(' shift 126
     . error
 
-state 120 (entry on END)
+state 122 (entry on END)
     action : WHILE '(' expr ')' NL actions NL END_    (10)
 
     $end reduce 10
     NL reduce 10
     . error
 
-state 121 (entry on END)
+state 123 (entry on END)
     defun : DEF ID '(' defargswrapper ')' NL actions NL END_    (6)
 
     $end reduce 6
     NL reduce 6
     . error
 
-state 122 (entry on END)
+state 124 (entry on END)
     action : IF '(' expr ')' NL actions NL elsec END_    (9)
 
     $end reduce 9
     NL reduce 9
     . error
 
-state 123 (entry on action)
+state 125 (entry on action)
     elsec : ELSE action_NL    (21)
 
-    NL shift 125
+    NL shift 127
     . error
 
-state 124 (entry on '(')
+state 126 (entry on '(')
     elsec : ELSIF '('_expr ')' NL action NL elsec    (22)
 
     NUMBER shift 17
     STRING_LITERAL shift 20
     '(' shift 23
-    ID shift 47
+    ID shift 70
     . error
 
-    expr goto 126
+    expr goto 128
     symbol goto 8
     valexpr goto 9
 
-state 125 (entry on NL)
+state 127 (entry on NL)
     elsec : ELSE action NL_    (21)
 
     END reduce 21
     . error
 
-state 126 (entry on expr)
+state 128 (entry on expr)
     elsec : ELSIF '(' expr_')' NL action NL elsec    (22)
 
-    ')' shift 127
+    ')' shift 129
     . error
 
-state 127 (entry on ')')
+state 129 (entry on ')')
     elsec : ELSIF '(' expr ')'_NL action NL elsec    (22)
 
-    NL shift 128
+    NL shift 130
     . error
 
-state 128 (entry on NL)
+state 130 (entry on NL)
     elsec : ELSIF '(' expr ')' NL_action NL elsec    (22)
 
     EXIT shift 11
@@ -1888,33 +1900,33 @@ state 128 (entry on NL)
     assignment goto 2
     declaration goto 4
     expr goto 6
-    action goto 129
+    action goto 131
     symbol goto 8
     valexpr goto 9
 
-state 129 (entry on action)
+state 131 (entry on action)
     elsec : ELSIF '(' expr ')' NL action_NL elsec    (22)
 
-    NL shift 130
+    NL shift 132
     . error
 
-state 130 (entry on NL)
+state 132 (entry on NL)
     elsec : ELSIF '(' expr ')' NL action NL_elsec    (22)
     elsec : _    (23)
 
-    ELSE shift 118
-    ELSIF shift 119
+    ELSE shift 120
+    ELSIF shift 121
     END reduce 23
     . error
 
-    elsec goto 131
+    elsec goto 133
 
-state 131 (entry on elsec)
+state 133 (entry on elsec)
     elsec : ELSIF '(' expr ')' NL action NL elsec_    (22)
 
     END reduce 22
     . error
 
 46 terminals, 16 nonterminals;
-60 grammar rules, 132 states;
+60 grammar rules, 134 states;
 0 shift/reduce and 0 reduce/reduce conflicts reported.

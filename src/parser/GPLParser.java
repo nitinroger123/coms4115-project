@@ -1,4 +1,4 @@
-// Output created by jacc on Tue May 10 03:44:31 EDT 2011
+// Output created by jacc on Tue May 10 05:21:55 EDT 2011
 
 package parser;
 
@@ -35,6 +35,8 @@ package parser;
     private Stack<Boolean> toSkip = new Stack<Boolean>();
     private Stack<Boolean> ifEvaluatedToTrue = new Stack<Boolean>();
     private Stack<Integer> skipCounter = new Stack<Integer>();
+    
+    public Object lastReturn;
     
     //This tells the lexer to start recording the character stream (used for backtracking)
     private boolean record = false;
@@ -81,6 +83,7 @@ package parser;
                 }
             }
             //System.out.println((toSkip.size()==0 || !toSkip.peek() ? "" : " -- ") + ((char)c=='\n' ? "NL" : (char)c) + " : " + c);
+            
             return c;
         } catch (Exception e) {
             return -1;
@@ -377,7 +380,40 @@ package parser;
                 }
             } else if (s.equals("include")) {
                 if (toSkip.size()==0 || !toSkip.peek()) {
-                    return token=INCLUDE;
+                
+                    String line = getLine();
+                    
+                    eval(line, true, false);
+                    String randomFile = (int)(Math.random()*1000) + ".tmp";
+                    Preprocessor preprocessor2 = null;
+                    BufferedReader reader = null;
+                    
+                    try {
+                        preprocessor2 = new Preprocessor(((Type)(lastReturn)).getValue(), randomFile);
+                        reader = new BufferedReader(new FileReader(randomFile));
+                    } catch (Exception e) {
+                        System.out.println("Bad file name '" + ((Type)(lastReturn)).getValue() + "', include failed.");
+                        System.exit(1);
+                    }
+                    
+                    if (preprocessor2==null) return nextToken();
+                    loadFunctions(preprocessor2);
+                    if (reader!=null) {
+                        String code = "";
+                        String s;
+                        try {
+                            while((s = reader.readLine()) != null){
+                                code = code + s + (char)13 + "\n";
+                            }
+                            
+                            File aFile = new File(randomFile);
+                            aFile.delete();
+                        } catch (Exception e) {}
+                        
+                        eval(code, true, false);
+                    }
+                    
+                    return nextToken();
                 } else {
                     return nextToken();
                 }
@@ -604,7 +640,15 @@ package parser;
             } else if (s.equals("exit")) {
                 return token=EXIT;
             } else if (s.equals("return")) {
-                return token=RETURN;
+                if (toSkip.size()==0 || !toSkip.peek()) {
+                    eval(getLine());
+                    
+                    //This forces the current input stream to end
+                    lastChar = -1;
+                    return token=RETURN;
+                } else {
+                    return nextToken();
+                }
             } else if (s.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
                 yylval = new SemanticWrapper(new StringType(s));
                 return token=ID;
@@ -622,25 +666,32 @@ package parser;
     }
         
     private boolean eval(String code) {
-        return eval(code, true);
+        return eval(code, true, true);
+    }
+    
+    private boolean eval(String code, boolean interactive) {
+        return eval(code, interactive, true);
     }
     
     /**
         Does not handle scopes, caller takes care of it!
     */
-    private boolean eval(String code, boolean interactive) {
+    private boolean eval(String code, boolean interactive, boolean strip) {
         
         lastChar = 32;
         
+        lastReturn = null;
+        
         //Strip off all extra new lines
-        while (code.charAt(0)=='\n' || code.charAt(0)==13) {
-            code = code.substring(1,code.length());
+        if (strip) {
+            while (code.charAt(0)=='\n' || code.charAt(0)==13) {
+                code = code.substring(1,code.length());
+            }
         }
         
         inputs.push(new StringReader(code));
         
         /*
-        
         System.out.println("---------------- Eval: --------------");
         System.out.println(code);
         System.out.println("-----------Scope content ------------");
@@ -670,10 +721,17 @@ package parser;
             record = savedRecord;
         }
         
-        //System.out.println(liner.getReturn());
         
         if (liner.getReturn()==null) return false;
-        return GPLHelper.isTrue(((NumberType)(liner.getReturn().val)).getDouble());
+        
+        lastReturn = liner.getReturn().val;
+        
+        boolean theReturn = false;
+        
+        try {
+            theReturn = GPLHelper.isTrue(((NumberType)(liner.getReturn().val)).getDouble());
+        } catch (Exception e) {}
+        return theReturn;
     }
     
     public Object evalFunction(String code, ArrayList<String> formalArgs, ArrayList<Object> actualArgs) {
@@ -686,7 +744,15 @@ package parser;
         }
         eval(code);
         scopes.pop();
-        return null;
+        return lastReturn;
+    }
+    
+    public void loadFunctions(Preprocessor p) {
+        for (FunctionDef ff : p.functions) {
+            Function f = new Function(ff.name, ff.code, ff.paramsType);
+            f.args = ff.args;
+            scopes.get(0).put(f.name, f);
+        }
     }
     
         SemanticWrapper getSemantic() {
@@ -706,6 +772,7 @@ package parser;
             
             
             while ((line = scanner.nextLine())!=null) {
+                line = line + (char)13 + "\n";
                 GPLLexer  lexer  = new GPLLexer();
                 if (scopes==null) {
                     scopes = lexer.getScopes();
@@ -720,7 +787,7 @@ package parser;
                 liner.setInteractive(true);
                 liner.parse();
                 
-                if (liner.getReturn()!=null) {
+                if (liner.getReturn()!=null && liner.getReturn().val!=null) {
                     System.out.println(((Type)(liner.getReturn().val)).getValue());
                 }
                 System.out.println("Successfully executed in " + ((System.currentTimeMillis() - start)/1000.0) + " seconds");
@@ -731,7 +798,7 @@ package parser;
 
       } else {
           String file = args[0];
-          Preprocessor p = new Preprocessor(file);
+          Preprocessor p = new Preprocessor(file, "notused.tmp");
           GPLLexer  lexer  = new GPLLexer();
           lexer.nextToken();
           GPLParser parser = new GPLParser(lexer);
@@ -780,7 +847,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 132:
+                case 134:
                     yyn = yys0();
                     continue;
 
@@ -789,16 +856,16 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 133:
+                case 135:
                     switch (yytok) {
                         case ENDINPUT:
-                            yyn = 264;
+                            yyn = 268;
                             continue;
                         case NL:
                             yyn = 24;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 2:
@@ -806,14 +873,14 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 134:
+                case 136:
                     switch (yytok) {
                         case ENDINPUT:
                         case NL:
                             yyn = yyr19();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 3:
@@ -821,14 +888,14 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 135:
+                case 137:
                     switch (yytok) {
                         case ENDINPUT:
                         case NL:
                             yyn = yyr2();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 4:
@@ -836,14 +903,14 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 136:
+                case 138:
                     switch (yytok) {
                         case ENDINPUT:
                         case NL:
                             yyn = yyr18();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 5:
@@ -851,14 +918,14 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 137:
+                case 139:
                     switch (yytok) {
                         case ENDINPUT:
                         case NL:
                             yyn = yyr4();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 6:
@@ -866,14 +933,14 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 138:
+                case 140:
                     switch (yytok) {
                         case ENDINPUT:
                         case NL:
                             yyn = yyr20();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 7:
@@ -881,14 +948,14 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 139:
+                case 141:
                     switch (yytok) {
                         case ENDINPUT:
                         case NL:
                             yyn = yyr3();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 8:
@@ -896,7 +963,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 140:
+                case 142:
                     yyn = yys8();
                     continue;
 
@@ -905,7 +972,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 141:
+                case 143:
                     yyn = yys9();
                     continue;
 
@@ -918,13 +985,13 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 142:
+                case 144:
                     switch (yytok) {
                         case ID:
                             yyn = 39;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 11:
@@ -936,14 +1003,14 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 143:
+                case 145:
                     switch (yytok) {
                         case ENDINPUT:
                         case NL:
                             yyn = yyr17();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 12:
@@ -955,7 +1022,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 144:
+                case 146:
                     yyn = yys12();
                     continue;
 
@@ -968,13 +1035,13 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 145:
+                case 147:
                     switch (yytok) {
                         case '(':
                             yyn = 43;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 14:
@@ -986,13 +1053,13 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 146:
+                case 148:
                     switch (yytok) {
                         case '(':
                             yyn = 44;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 15:
@@ -1004,14 +1071,14 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 147:
+                case 149:
                     switch (yytok) {
                         case ENDINPUT:
                         case NL:
                             yyn = yyr14();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 16:
@@ -1023,14 +1090,14 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 148:
+                case 150:
                     switch (yytok) {
                         case ENDINPUT:
                         case NL:
                             yyn = yyr13();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 17:
@@ -1042,7 +1109,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 149:
+                case 151:
                     yyn = yys17();
                     continue;
 
@@ -1055,13 +1122,13 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 150:
+                case 152:
                     switch (yytok) {
                         case '(':
                             yyn = 45;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 19:
@@ -1073,8 +1140,17 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 151:
-                    yyn = yys19();
+                case 153:
+                    switch (yytok) {
+                        case '(':
+                            yyn = 46;
+                            continue;
+                        case ENDINPUT:
+                        case NL:
+                            yyn = yyr16();
+                            continue;
+                    }
+                    yyn = 271;
                     continue;
 
                 case 20:
@@ -1086,7 +1162,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 152:
+                case 154:
                     yyn = yys20();
                     continue;
 
@@ -1099,13 +1175,13 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 153:
+                case 155:
                     switch (yytok) {
                         case ID:
-                            yyn = 48;
+                            yyn = 47;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 22:
@@ -1117,57 +1193,17 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 154:
+                case 156:
                     switch (yytok) {
                         case '(':
-                            yyn = 49;
+                            yyn = 48;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 23:
                     yyst[yysp] = 23;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 155:
-                    switch (yytok) {
-                        case NUMBER:
-                            yyn = 17;
-                            continue;
-                        case STRING_LITERAL:
-                            yyn = 20;
-                            continue;
-                        case '(':
-                            yyn = 23;
-                            continue;
-                        case ID:
-                            yyn = 51;
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 24:
-                    yyst[yysp] = 24;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 156:
-                    yyn = yys24();
-                    continue;
-
-                case 25:
-                    yyst[yysp] = 25;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1187,14 +1223,14 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 51;
+                            yyn = 50;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 26:
-                    yyst[yysp] = 26;
+                case 24:
+                    yyst[yysp] = 24;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1203,25 +1239,11 @@ class GPLParser implements GPLTokens {
                         yyexpand();
                     }
                 case 158:
-                    switch (yytok) {
-                        case NUMBER:
-                            yyn = 17;
-                            continue;
-                        case STRING_LITERAL:
-                            yyn = 20;
-                            continue;
-                        case '(':
-                            yyn = 23;
-                            continue;
-                        case ID:
-                            yyn = 51;
-                            continue;
-                    }
-                    yyn = 267;
+                    yyn = yys24();
                     continue;
 
-                case 27:
-                    yyst[yysp] = 27;
+                case 25:
+                    yyst[yysp] = 25;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1241,14 +1263,14 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 51;
+                            yyn = 50;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 28:
-                    yyst[yysp] = 28;
+                case 26:
+                    yyst[yysp] = 26;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1268,14 +1290,14 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 51;
+                            yyn = 50;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 29:
-                    yyst[yysp] = 29;
+                case 27:
+                    yyst[yysp] = 27;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1295,14 +1317,14 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 51;
+                            yyn = 50;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 30:
-                    yyst[yysp] = 30;
+                case 28:
+                    yyst[yysp] = 28;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1322,14 +1344,14 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 51;
+                            yyn = 50;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 31:
-                    yyst[yysp] = 31;
+                case 29:
+                    yyst[yysp] = 29;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1349,14 +1371,14 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 51;
+                            yyn = 50;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 32:
-                    yyst[yysp] = 32;
+                case 30:
+                    yyst[yysp] = 30;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1376,14 +1398,14 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 51;
+                            yyn = 50;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 33:
-                    yyst[yysp] = 33;
+                case 31:
+                    yyst[yysp] = 31;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1403,14 +1425,14 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 51;
+                            yyn = 50;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 34:
-                    yyst[yysp] = 34;
+                case 32:
+                    yyst[yysp] = 32;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1430,14 +1452,14 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 51;
+                            yyn = 50;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 35:
-                    yyst[yysp] = 35;
+                case 33:
+                    yyst[yysp] = 33;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1457,14 +1479,14 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 51;
+                            yyn = 50;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 36:
-                    yyst[yysp] = 36;
+                case 34:
+                    yyst[yysp] = 34;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1484,14 +1506,14 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 51;
+                            yyn = 50;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 37:
-                    yyst[yysp] = 37;
+                case 35:
+                    yyst[yysp] = 35;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1511,14 +1533,14 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 51;
+                            yyn = 50;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 38:
-                    yyst[yysp] = 38;
+                case 36:
+                    yyst[yysp] = 36;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1538,14 +1560,14 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 51;
+                            yyn = 50;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 39:
-                    yyst[yysp] = 39;
+                case 37:
+                    yyst[yysp] = 37;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1555,15 +1577,24 @@ class GPLParser implements GPLTokens {
                     }
                 case 171:
                     switch (yytok) {
+                        case NUMBER:
+                            yyn = 17;
+                            continue;
+                        case STRING_LITERAL:
+                            yyn = 20;
+                            continue;
                         case '(':
-                            yyn = 67;
+                            yyn = 23;
+                            continue;
+                        case ID:
+                            yyn = 50;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 40:
-                    yyst[yysp] = 40;
+                case 38:
+                    yyst[yysp] = 38;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1583,17 +1614,14 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 47;
-                            continue;
-                        case ')':
-                            yyn = yyr31();
+                            yyn = 50;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 41:
-                    yyst[yysp] = 41;
+                case 39:
+                    yyst[yysp] = 39;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1603,15 +1631,15 @@ class GPLParser implements GPLTokens {
                     }
                 case 173:
                     switch (yytok) {
-                        case ID:
-                            yyn = 71;
+                        case '(':
+                            yyn = 66;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 42:
-                    yyst[yysp] = 42;
+                case 40:
+                    yyst[yysp] = 40;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1631,17 +1659,17 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 47;
+                            yyn = 70;
                             continue;
-                        case '[':
-                            yyn = 73;
+                        case ')':
+                            yyn = yyr31();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 43:
-                    yyst[yysp] = 43;
+                case 41:
+                    yyst[yysp] = 41;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1651,24 +1679,15 @@ class GPLParser implements GPLTokens {
                     }
                 case 175:
                     switch (yytok) {
-                        case NUMBER:
-                            yyn = 17;
-                            continue;
-                        case STRING_LITERAL:
-                            yyn = 20;
-                            continue;
-                        case '(':
-                            yyn = 23;
-                            continue;
                         case ID:
-                            yyn = 47;
+                            yyn = 71;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 44:
-                    yyst[yysp] = 44;
+                case 42:
+                    yyst[yysp] = 42;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1688,14 +1707,17 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 47;
+                            yyn = 70;
+                            continue;
+                        case '[':
+                            yyn = 73;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 45:
-                    yyst[yysp] = 45;
+                case 43:
+                    yyst[yysp] = 43;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1715,25 +1737,91 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 47;
+                            yyn = 70;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 46:
-                    yyst[yysp] = 46;
+                case 44:
+                    yyst[yysp] = 44;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
                 case 178:
                     switch (yytok) {
-                        case ENDINPUT:
-                        case NL:
-                            yyn = yyr15();
+                        case NUMBER:
+                            yyn = 17;
+                            continue;
+                        case STRING_LITERAL:
+                            yyn = 20;
+                            continue;
+                        case '(':
+                            yyn = 23;
+                            continue;
+                        case ID:
+                            yyn = 70;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
+                    continue;
+
+                case 45:
+                    yyst[yysp] = 45;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 179:
+                    switch (yytok) {
+                        case NUMBER:
+                            yyn = 17;
+                            continue;
+                        case STRING_LITERAL:
+                            yyn = 20;
+                            continue;
+                        case '(':
+                            yyn = 23;
+                            continue;
+                        case ID:
+                            yyn = 70;
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 46:
+                    yyst[yysp] = 46;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 180:
+                    switch (yytok) {
+                        case NUMBER:
+                            yyn = 17;
+                            continue;
+                        case STRING_LITERAL:
+                            yyn = 20;
+                            continue;
+                        case '(':
+                            yyn = 23;
+                            continue;
+                        case ID:
+                            yyn = 70;
+                            continue;
+                    }
+                    yyn = 271;
                     continue;
 
                 case 47:
@@ -1745,8 +1833,17 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 179:
-                    yyn = yys47();
+                case 181:
+                    switch (yytok) {
+                        case '=':
+                            yyn = 78;
+                            continue;
+                        case ENDINPUT:
+                        case NL:
+                            yyn = yyr34();
+                            continue;
+                    }
+                    yyn = 271;
                     continue;
 
                 case 48:
@@ -1758,29 +1855,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 180:
-                    switch (yytok) {
-                        case '=':
-                            yyn = 77;
-                            continue;
-                        case ENDINPUT:
-                        case NL:
-                            yyn = yyr34();
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 49:
-                    yyst[yysp] = 49;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 181:
+                case 182:
                     switch (yytok) {
                         case NUMBER:
                             yyn = 17;
@@ -1792,23 +1867,23 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 47;
+                            yyn = 70;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
+                    continue;
+
+                case 49:
+                    yyst[yysp] = 49;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 183:
+                    yyn = yys49();
                     continue;
 
                 case 50:
                     yyst[yysp] = 50;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 182:
-                    yyn = yys50();
-                    continue;
-
-                case 51:
-                    yyst[yysp] = 51;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1816,8 +1891,23 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 183:
-                    yyn = yys51();
+                case 184:
+                    yyn = yys50();
+                    continue;
+
+                case 51:
+                    yyst[yysp] = 51;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 185:
+                    switch (yytok) {
+                        case ENDINPUT:
+                        case NL:
+                            yyn = yyr1();
+                            continue;
+                    }
+                    yyn = 271;
                     continue;
 
                 case 52:
@@ -1825,14 +1915,8 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 184:
-                    switch (yytok) {
-                        case ENDINPUT:
-                        case NL:
-                            yyn = yyr1();
-                            continue;
-                    }
-                    yyn = 267;
+                case 186:
+                    yyn = yys52();
                     continue;
 
                 case 53:
@@ -1840,7 +1924,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 185:
+                case 187:
                     yyn = yys53();
                     continue;
 
@@ -1849,7 +1933,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 186:
+                case 188:
                     yyn = yys54();
                     continue;
 
@@ -1858,7 +1942,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 187:
+                case 189:
                     yyn = yys55();
                     continue;
 
@@ -1867,7 +1951,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 188:
+                case 190:
                     yyn = yys56();
                     continue;
 
@@ -1876,7 +1960,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 189:
+                case 191:
                     yyn = yys57();
                     continue;
 
@@ -1885,7 +1969,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 190:
+                case 192:
                     yyn = yys58();
                     continue;
 
@@ -1894,7 +1978,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 191:
+                case 193:
                     yyn = yys59();
                     continue;
 
@@ -1903,7 +1987,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 192:
+                case 194:
                     yyn = yys60();
                     continue;
 
@@ -1912,7 +1996,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 193:
+                case 195:
                     yyn = yys61();
                     continue;
 
@@ -1921,7 +2005,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 194:
+                case 196:
                     yyn = yys62();
                     continue;
 
@@ -1930,7 +2014,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 195:
+                case 197:
                     yyn = yys63();
                     continue;
 
@@ -1939,7 +2023,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 196:
+                case 198:
                     yyn = yys64();
                     continue;
 
@@ -1948,21 +2032,12 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 197:
+                case 199:
                     yyn = yys65();
                     continue;
 
                 case 66:
                     yyst[yysp] = 66;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 198:
-                    yyn = yys66();
-                    continue;
-
-                case 67:
-                    yyst[yysp] = 67;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -1970,16 +2045,30 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 199:
+                case 200:
                     switch (yytok) {
                         case TYPE:
-                            yyn = 82;
+                            yyn = 83;
                             continue;
                         case ')':
                             yyn = yyr27();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
+                    continue;
+
+                case 67:
+                    yyst[yysp] = 67;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 201:
+                    switch (yytok) {
+                        case ')':
+                            yyn = yyr30();
+                            continue;
+                    }
+                    yyn = 271;
                     continue;
 
                 case 68:
@@ -1987,13 +2076,13 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 200:
+                case 202:
                     switch (yytok) {
                         case ')':
-                            yyn = yyr30();
+                            yyn = 84;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 69:
@@ -2001,30 +2090,29 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 201:
-                    switch (yytok) {
-                        case ')':
-                            yyn = 83;
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 70:
-                    yyst[yysp] = 70;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 202:
+                case 203:
                     switch (yytok) {
                         case ',':
-                            yyn = 84;
+                            yyn = 85;
                             continue;
                         case ')':
                             yyn = yyr29();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
+                    continue;
+
+                case 70:
+                    yyst[yysp] = 70;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 204:
+                    yyn = yys70();
                     continue;
 
                 case 71:
@@ -2036,13 +2124,13 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 203:
+                case 205:
                     switch (yytok) {
                         case '(':
-                            yyn = 85;
+                            yyn = 86;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 72:
@@ -2050,14 +2138,14 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 204:
+                case 206:
                     switch (yytok) {
                         case ENDINPUT:
                         case NL:
                             yyn = yyr35();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 73:
@@ -2069,7 +2157,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 205:
+                case 207:
                     switch (yytok) {
                         case NUMBER:
                             yyn = 17;
@@ -2081,10 +2169,10 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 47;
+                            yyn = 70;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 74:
@@ -2092,13 +2180,13 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 206:
+                case 208:
                     switch (yytok) {
                         case ')':
-                            yyn = 88;
+                            yyn = 89;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 75:
@@ -2106,13 +2194,13 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 207:
+                case 209:
                     switch (yytok) {
                         case ')':
-                            yyn = 89;
+                            yyn = 90;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 76:
@@ -2120,17 +2208,31 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 208:
+                case 210:
                     switch (yytok) {
                         case ')':
-                            yyn = 90;
+                            yyn = 91;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 77:
                     yyst[yysp] = 77;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 211:
+                    switch (yytok) {
+                        case ')':
+                            yyn = 92;
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 78:
+                    yyst[yysp] = 78;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -2138,7 +2240,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 209:
+                case 212:
                     switch (yytok) {
                         case NUMBER:
                             yyn = 17;
@@ -2150,72 +2252,31 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 47;
+                            yyn = 70;
                             continue;
                         case '[':
-                            yyn = 92;
+                            yyn = 94;
                             continue;
                     }
-                    yyn = 267;
-                    continue;
-
-                case 78:
-                    yyst[yysp] = 78;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 210:
-                    switch (yytok) {
-                        case ')':
-                            yyn = 93;
-                            continue;
-                    }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 79:
                     yyst[yysp] = 79;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 211:
-                    yyn = yys79();
-                    continue;
-
-                case 80:
-                    yyst[yysp] = 80;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 212:
-                    switch (yytok) {
-                        case ')':
-                            yyn = yyr26();
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 81:
-                    yyst[yysp] = 81;
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
                 case 213:
                     switch (yytok) {
                         case ')':
-                            yyn = 94;
+                            yyn = 95;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 82:
-                    yyst[yysp] = 82;
+                case 80:
+                    yyst[yysp] = 80;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -2224,12 +2285,35 @@ class GPLParser implements GPLTokens {
                         yyexpand();
                     }
                 case 214:
+                    yyn = yys80();
+                    continue;
+
+                case 81:
+                    yyst[yysp] = 81;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 215:
                     switch (yytok) {
-                        case ID:
-                            yyn = 95;
+                        case ')':
+                            yyn = yyr26();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
+                    continue;
+
+                case 82:
+                    yyst[yysp] = 82;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 216:
+                    switch (yytok) {
+                        case ')':
+                            yyn = 96;
+                            continue;
+                    }
+                    yyn = 271;
                     continue;
 
                 case 83:
@@ -2241,17 +2325,13 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 215:
+                case 217:
                     switch (yytok) {
-                        case ')':
-                        case ENDINPUT:
-                        case ']':
-                        case NL:
-                        case ',':
-                            yyn = yyr40();
+                        case ID:
+                            yyn = 97;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 84:
@@ -2263,22 +2343,17 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 216:
+                case 218:
                     switch (yytok) {
-                        case NUMBER:
-                            yyn = 17;
-                            continue;
-                        case STRING_LITERAL:
-                            yyn = 20;
-                            continue;
-                        case '(':
-                            yyn = 23;
-                            continue;
-                        case ID:
-                            yyn = 47;
+                        case ')':
+                        case ENDINPUT:
+                        case ']':
+                        case NL:
+                        case ',':
+                            yyn = yyr40();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 85:
@@ -2290,7 +2365,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 217:
+                case 219:
                     switch (yytok) {
                         case NUMBER:
                             yyn = 17;
@@ -2302,48 +2377,14 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 47;
-                            continue;
-                        case ')':
-                            yyn = yyr31();
+                            yyn = 70;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 86:
                     yyst[yysp] = 86;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 218:
-                    switch (yytok) {
-                        case ',':
-                            yyn = 98;
-                            continue;
-                        case ']':
-                            yyn = yyr38();
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 87:
-                    yyst[yysp] = 87;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 219:
-                    switch (yytok) {
-                        case ']':
-                            yyn = 99;
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 88:
-                    yyst[yysp] = 88;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -2353,11 +2394,54 @@ class GPLParser implements GPLTokens {
                     }
                 case 220:
                     switch (yytok) {
-                        case NL:
-                            yyn = 100;
+                        case NUMBER:
+                            yyn = 17;
+                            continue;
+                        case STRING_LITERAL:
+                            yyn = 20;
+                            continue;
+                        case '(':
+                            yyn = 23;
+                            continue;
+                        case ID:
+                            yyn = 70;
+                            continue;
+                        case ')':
+                            yyn = yyr31();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
+                    continue;
+
+                case 87:
+                    yyst[yysp] = 87;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 221:
+                    switch (yytok) {
+                        case ',':
+                            yyn = 100;
+                            continue;
+                        case ']':
+                            yyn = yyr38();
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 88:
+                    yyst[yysp] = 88;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 222:
+                    switch (yytok) {
+                        case ']':
+                            yyn = 101;
+                            continue;
+                    }
+                    yyn = 271;
                     continue;
 
                 case 89:
@@ -2369,14 +2453,13 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 221:
+                case 223:
                     switch (yytok) {
-                        case ENDINPUT:
                         case NL:
-                            yyn = yyr11();
+                            yyn = 102;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 90:
@@ -2388,29 +2471,33 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 222:
+                case 224:
+                    switch (yytok) {
+                        case ENDINPUT:
+                        case NL:
+                            yyn = yyr11();
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 91:
+                    yyst[yysp] = 91;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 225:
                     switch (yytok) {
                         case ENDINPUT:
                         case NL:
                             yyn = yyr12();
                             continue;
                     }
-                    yyn = 267;
-                    continue;
-
-                case 91:
-                    yyst[yysp] = 91;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 223:
-                    switch (yytok) {
-                        case ENDINPUT:
-                        case NL:
-                            yyn = yyr32();
-                            continue;
-                    }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 92:
@@ -2422,40 +2509,29 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 224:
+                case 226:
                     switch (yytok) {
-                        case NUMBER:
-                            yyn = 17;
-                            continue;
-                        case STRING_LITERAL:
-                            yyn = 20;
-                            continue;
-                        case '(':
-                            yyn = 23;
-                            continue;
-                        case ID:
-                            yyn = 47;
+                        case ENDINPUT:
+                        case NL:
+                            yyn = yyr15();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 93:
                     yyst[yysp] = 93;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 225:
+                case 227:
                     switch (yytok) {
+                        case ENDINPUT:
                         case NL:
-                            yyn = 102;
+                            yyn = yyr32();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 94:
@@ -2467,13 +2543,22 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 226:
+                case 228:
                     switch (yytok) {
-                        case NL:
-                            yyn = 103;
+                        case NUMBER:
+                            yyn = 17;
+                            continue;
+                        case STRING_LITERAL:
+                            yyn = 20;
+                            continue;
+                        case '(':
+                            yyn = 23;
+                            continue;
+                        case ID:
+                            yyn = 70;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 95:
@@ -2485,48 +2570,17 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 227:
+                case 229:
                     switch (yytok) {
-                        case ',':
+                        case NL:
                             yyn = 104;
                             continue;
-                        case ')':
-                            yyn = yyr25();
-                            continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 96:
                     yyst[yysp] = 96;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 228:
-                    switch (yytok) {
-                        case ')':
-                            yyn = yyr28();
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 97:
-                    yyst[yysp] = 97;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 229:
-                    switch (yytok) {
-                        case ')':
-                            yyn = 105;
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 98:
-                    yyst[yysp] = 98;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -2536,24 +2590,15 @@ class GPLParser implements GPLTokens {
                     }
                 case 230:
                     switch (yytok) {
-                        case NUMBER:
-                            yyn = 17;
-                            continue;
-                        case STRING_LITERAL:
-                            yyn = 20;
-                            continue;
-                        case '(':
-                            yyn = 23;
-                            continue;
-                        case ID:
-                            yyn = 47;
+                        case NL:
+                            yyn = 105;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 99:
-                    yyst[yysp] = 99;
+                case 97:
+                    yyst[yysp] = 97;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -2563,12 +2608,42 @@ class GPLParser implements GPLTokens {
                     }
                 case 231:
                     switch (yytok) {
-                        case ENDINPUT:
-                        case NL:
-                            yyn = yyr36();
+                        case ',':
+                            yyn = 106;
+                            continue;
+                        case ')':
+                            yyn = yyr25();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
+                    continue;
+
+                case 98:
+                    yyst[yysp] = 98;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 232:
+                    switch (yytok) {
+                        case ')':
+                            yyn = yyr28();
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 99:
+                    yyst[yysp] = 99;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 233:
+                    switch (yytok) {
+                        case ')':
+                            yyn = 107;
+                            continue;
+                    }
+                    yyn = 271;
                     continue;
 
                 case 100:
@@ -2580,372 +2655,7 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 232:
-                    yyn = yys100();
-                    continue;
-
-                case 101:
-                    yyst[yysp] = 101;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 233:
-                    switch (yytok) {
-                        case ']':
-                            yyn = 109;
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 102:
-                    yyst[yysp] = 102;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
                 case 234:
-                    yyn = yys102();
-                    continue;
-
-                case 103:
-                    yyst[yysp] = 103;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 235:
-                    yyn = yys103();
-                    continue;
-
-                case 104:
-                    yyst[yysp] = 104;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 236:
-                    switch (yytok) {
-                        case TYPE:
-                            yyn = 82;
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 105:
-                    yyst[yysp] = 105;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 237:
-                    switch (yytok) {
-                        case ')':
-                        case ENDINPUT:
-                        case ']':
-                        case NL:
-                        case ',':
-                            yyn = yyr39();
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 106:
-                    yyst[yysp] = 106;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 238:
-                    switch (yytok) {
-                        case ']':
-                            yyn = yyr37();
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 107:
-                    yyst[yysp] = 107;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 239:
-                    switch (yytok) {
-                        case NL:
-                            yyn = 113;
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 108:
-                    yyst[yysp] = 108;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 240:
-                    switch (yytok) {
-                        case NL:
-                            yyn = yyr7();
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 109:
-                    yyst[yysp] = 109;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 241:
-                    switch (yytok) {
-                        case ENDINPUT:
-                        case NL:
-                            yyn = yyr33();
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 110:
-                    yyst[yysp] = 110;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 242:
-                    switch (yytok) {
-                        case NL:
-                            yyn = 114;
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 111:
-                    yyst[yysp] = 111;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 243:
-                    switch (yytok) {
-                        case NL:
-                            yyn = 115;
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 112:
-                    yyst[yysp] = 112;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 244:
-                    switch (yytok) {
-                        case ')':
-                            yyn = yyr24();
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 113:
-                    yyst[yysp] = 113;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 245:
-                    yyn = yys113();
-                    continue;
-
-                case 114:
-                    yyst[yysp] = 114;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 246:
-                    yyn = yys114();
-                    continue;
-
-                case 115:
-                    yyst[yysp] = 115;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 247:
-                    yyn = yys115();
-                    continue;
-
-                case 116:
-                    yyst[yysp] = 116;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 248:
-                    switch (yytok) {
-                        case END:
-                            yyn = 122;
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 117:
-                    yyst[yysp] = 117;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 249:
-                    switch (yytok) {
-                        case NL:
-                            yyn = yyr8();
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 118:
-                    yyst[yysp] = 118;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 250:
-                    yyn = yys118();
-                    continue;
-
-                case 119:
-                    yyst[yysp] = 119;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 251:
-                    switch (yytok) {
-                        case '(':
-                            yyn = 124;
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 120:
-                    yyst[yysp] = 120;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 252:
-                    switch (yytok) {
-                        case ENDINPUT:
-                        case NL:
-                            yyn = yyr10();
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 121:
-                    yyst[yysp] = 121;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 253:
-                    switch (yytok) {
-                        case ENDINPUT:
-                        case NL:
-                            yyn = yyr6();
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 122:
-                    yyst[yysp] = 122;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 254:
-                    switch (yytok) {
-                        case ENDINPUT:
-                        case NL:
-                            yyn = yyr9();
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 123:
-                    yyst[yysp] = 123;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 255:
-                    switch (yytok) {
-                        case NL:
-                            yyn = 125;
-                            continue;
-                    }
-                    yyn = 267;
-                    continue;
-
-                case 124:
-                    yyst[yysp] = 124;
-                    yysv[yysp] = (lexer.getSemantic()
-                                 );
-                    yytok = (lexer.nextToken()
-                            );
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 256:
                     switch (yytok) {
                         case NUMBER:
                             yyn = 17;
@@ -2957,14 +2667,346 @@ class GPLParser implements GPLTokens {
                             yyn = 23;
                             continue;
                         case ID:
-                            yyn = 47;
+                            yyn = 70;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 125:
-                    yyst[yysp] = 125;
+                case 101:
+                    yyst[yysp] = 101;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 235:
+                    switch (yytok) {
+                        case ENDINPUT:
+                        case NL:
+                            yyn = yyr36();
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 102:
+                    yyst[yysp] = 102;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 236:
+                    yyn = yys102();
+                    continue;
+
+                case 103:
+                    yyst[yysp] = 103;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 237:
+                    switch (yytok) {
+                        case ']':
+                            yyn = 111;
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 104:
+                    yyst[yysp] = 104;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 238:
+                    yyn = yys104();
+                    continue;
+
+                case 105:
+                    yyst[yysp] = 105;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 239:
+                    yyn = yys105();
+                    continue;
+
+                case 106:
+                    yyst[yysp] = 106;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 240:
+                    switch (yytok) {
+                        case TYPE:
+                            yyn = 83;
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 107:
+                    yyst[yysp] = 107;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 241:
+                    switch (yytok) {
+                        case ')':
+                        case ENDINPUT:
+                        case ']':
+                        case NL:
+                        case ',':
+                            yyn = yyr39();
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 108:
+                    yyst[yysp] = 108;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 242:
+                    switch (yytok) {
+                        case ']':
+                            yyn = yyr37();
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 109:
+                    yyst[yysp] = 109;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 243:
+                    switch (yytok) {
+                        case NL:
+                            yyn = 115;
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 110:
+                    yyst[yysp] = 110;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 244:
+                    switch (yytok) {
+                        case NL:
+                            yyn = yyr7();
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 111:
+                    yyst[yysp] = 111;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 245:
+                    switch (yytok) {
+                        case ENDINPUT:
+                        case NL:
+                            yyn = yyr33();
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 112:
+                    yyst[yysp] = 112;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 246:
+                    switch (yytok) {
+                        case NL:
+                            yyn = 116;
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 113:
+                    yyst[yysp] = 113;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 247:
+                    switch (yytok) {
+                        case NL:
+                            yyn = 117;
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 114:
+                    yyst[yysp] = 114;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 248:
+                    switch (yytok) {
+                        case ')':
+                            yyn = yyr24();
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 115:
+                    yyst[yysp] = 115;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 249:
+                    yyn = yys115();
+                    continue;
+
+                case 116:
+                    yyst[yysp] = 116;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 250:
+                    yyn = yys116();
+                    continue;
+
+                case 117:
+                    yyst[yysp] = 117;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 251:
+                    yyn = yys117();
+                    continue;
+
+                case 118:
+                    yyst[yysp] = 118;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 252:
+                    switch (yytok) {
+                        case END:
+                            yyn = 124;
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 119:
+                    yyst[yysp] = 119;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 253:
+                    switch (yytok) {
+                        case NL:
+                            yyn = yyr8();
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 120:
+                    yyst[yysp] = 120;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 254:
+                    yyn = yys120();
+                    continue;
+
+                case 121:
+                    yyst[yysp] = 121;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 255:
+                    switch (yytok) {
+                        case '(':
+                            yyn = 126;
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 122:
+                    yyst[yysp] = 122;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 256:
+                    switch (yytok) {
+                        case ENDINPUT:
+                        case NL:
+                            yyn = yyr10();
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 123:
+                    yyst[yysp] = 123;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -2974,25 +3016,72 @@ class GPLParser implements GPLTokens {
                     }
                 case 257:
                     switch (yytok) {
-                        case END:
-                            yyn = yyr21();
+                        case ENDINPUT:
+                        case NL:
+                            yyn = yyr6();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 126:
-                    yyst[yysp] = 126;
+                case 124:
+                    yyst[yysp] = 124;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
                 case 258:
                     switch (yytok) {
-                        case ')':
+                        case ENDINPUT:
+                        case NL:
+                            yyn = yyr9();
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 125:
+                    yyst[yysp] = 125;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 259:
+                    switch (yytok) {
+                        case NL:
                             yyn = 127;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
+                    continue;
+
+                case 126:
+                    yyst[yysp] = 126;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 260:
+                    switch (yytok) {
+                        case NUMBER:
+                            yyn = 17;
+                            continue;
+                        case STRING_LITERAL:
+                            yyn = 20;
+                            continue;
+                        case '(':
+                            yyn = 23;
+                            continue;
+                        case ID:
+                            yyn = 70;
+                            continue;
+                    }
+                    yyn = 271;
                     continue;
 
                 case 127:
@@ -3004,17 +3093,31 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 259:
+                case 261:
                     switch (yytok) {
-                        case NL:
-                            yyn = 128;
+                        case END:
+                            yyn = yyr21();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 128:
                     yyst[yysp] = 128;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 262:
+                    switch (yytok) {
+                        case ')':
+                            yyn = 129;
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 129:
+                    yyst[yysp] = 129;
                     yysv[yysp] = (lexer.getSemantic()
                                  );
                     yytok = (lexer.nextToken()
@@ -3022,22 +3125,13 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 260:
-                    yyn = yys128();
-                    continue;
-
-                case 129:
-                    yyst[yysp] = 129;
-                    if (++yysp>=yyst.length) {
-                        yyexpand();
-                    }
-                case 261:
+                case 263:
                     switch (yytok) {
                         case NL:
                             yyn = 130;
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
                 case 130:
@@ -3049,19 +3143,8 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 262:
-                    switch (yytok) {
-                        case ELSE:
-                            yyn = 118;
-                            continue;
-                        case ELSIF:
-                            yyn = 119;
-                            continue;
-                        case END:
-                            yyn = yyr23();
-                            continue;
-                    }
-                    yyn = 267;
+                case 264:
+                    yyn = yys130();
                     continue;
 
                 case 131:
@@ -3069,22 +3152,60 @@ class GPLParser implements GPLTokens {
                     if (++yysp>=yyst.length) {
                         yyexpand();
                     }
-                case 263:
+                case 265:
+                    switch (yytok) {
+                        case NL:
+                            yyn = 132;
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 132:
+                    yyst[yysp] = 132;
+                    yysv[yysp] = (lexer.getSemantic()
+                                 );
+                    yytok = (lexer.nextToken()
+                            );
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 266:
+                    switch (yytok) {
+                        case ELSE:
+                            yyn = 120;
+                            continue;
+                        case ELSIF:
+                            yyn = 121;
+                            continue;
+                        case END:
+                            yyn = yyr23();
+                            continue;
+                    }
+                    yyn = 271;
+                    continue;
+
+                case 133:
+                    yyst[yysp] = 133;
+                    if (++yysp>=yyst.length) {
+                        yyexpand();
+                    }
+                case 267:
                     switch (yytok) {
                         case END:
                             yyn = yyr22();
                             continue;
                     }
-                    yyn = 267;
+                    yyn = 271;
                     continue;
 
-                case 264:
+                case 268:
                     return true;
-                case 265:
+                case 269:
                     yyerror("stack overflow");
-                case 266:
+                case 270:
                     return false;
-                case 267:
+                case 271:
                     yyerror("syntax error");
                     return false;
             }
@@ -3136,7 +3257,7 @@ class GPLParser implements GPLTokens {
             case NL:
                 return yyr5();
         }
-        return 267;
+        return 271;
     }
 
     private int yys8() {
@@ -3162,7 +3283,7 @@ class GPLParser implements GPLTokens {
             case GE:
                 return yyr57();
         }
-        return 267;
+        return 271;
     }
 
     private int yys9() {
@@ -3202,7 +3323,7 @@ class GPLParser implements GPLTokens {
             case ',':
                 return yyr41();
         }
-        return 267;
+        return 271;
     }
 
     private int yys12() {
@@ -3231,7 +3352,7 @@ class GPLParser implements GPLTokens {
             case GE:
                 return yyr58();
         }
-        return 267;
+        return 271;
     }
 
     private int yys17() {
@@ -3257,24 +3378,7 @@ class GPLParser implements GPLTokens {
             case GE:
                 return yyr59();
         }
-        return 267;
-    }
-
-    private int yys19() {
-        switch (yytok) {
-            case NUMBER:
-                return 17;
-            case STRING_LITERAL:
-                return 20;
-            case '(':
-                return 23;
-            case ID:
-                return 47;
-            case ENDINPUT:
-            case NL:
-                return yyr16();
-        }
-        return 267;
+        return 271;
     }
 
     private int yys20() {
@@ -3300,7 +3404,7 @@ class GPLParser implements GPLTokens {
             case GE:
                 return yyr60();
         }
-        return 267;
+        return 271;
     }
 
     private int yys24() {
@@ -3337,40 +3441,10 @@ class GPLParser implements GPLTokens {
             case NL:
                 return yyr5();
         }
-        return 267;
+        return 271;
     }
 
-    private int yys47() {
-        switch (yytok) {
-            case '(':
-                return 40;
-            case '.':
-                return 41;
-            case ')':
-            case LT:
-            case '&':
-            case '%':
-            case LE:
-            case EQ:
-            case ENDINPUT:
-            case '|':
-            case '^':
-            case ']':
-            case '/':
-            case NL:
-            case GT:
-            case '-':
-            case ',':
-            case '+':
-            case '*':
-            case NE:
-            case GE:
-                return yyr58();
-        }
-        return 267;
-    }
-
-    private int yys50() {
+    private int yys49() {
         switch (yytok) {
             case EQ:
                 return 25;
@@ -3401,12 +3475,12 @@ class GPLParser implements GPLTokens {
             case '|':
                 return 38;
             case ')':
-                return 79;
+                return 80;
         }
-        return 267;
+        return 271;
     }
 
-    private int yys51() {
+    private int yys50() {
         switch (yytok) {
             case ')':
             case LT:
@@ -3429,7 +3503,47 @@ class GPLParser implements GPLTokens {
             case GE:
                 return yyr58();
         }
-        return 267;
+        return 271;
+    }
+
+    private int yys52() {
+        switch (yytok) {
+            case EQ:
+                return 25;
+            case GE:
+                return 26;
+            case GT:
+                return 27;
+            case LE:
+                return 28;
+            case LT:
+                return 29;
+            case NE:
+                return 30;
+            case '%':
+                return 31;
+            case '&':
+                return 32;
+            case '*':
+                return 33;
+            case '+':
+                return 34;
+            case '-':
+                return 35;
+            case '/':
+                return 36;
+            case '^':
+                return 37;
+            case '|':
+                return 38;
+            case ')':
+            case ENDINPUT:
+            case ']':
+            case NL:
+            case ',':
+                return yyr50();
+        }
+        return 271;
     }
 
     private int yys53() {
@@ -3467,9 +3581,9 @@ class GPLParser implements GPLTokens {
             case ']':
             case NL:
             case ',':
-                return yyr50();
+                return yyr54();
         }
-        return 267;
+        return 271;
     }
 
     private int yys54() {
@@ -3507,9 +3621,9 @@ class GPLParser implements GPLTokens {
             case ']':
             case NL:
             case ',':
-                return yyr54();
+                return yyr52();
         }
-        return 267;
+        return 271;
     }
 
     private int yys55() {
@@ -3547,9 +3661,9 @@ class GPLParser implements GPLTokens {
             case ']':
             case NL:
             case ',':
-                return yyr52();
+                return yyr55();
         }
-        return 267;
+        return 271;
     }
 
     private int yys56() {
@@ -3587,9 +3701,9 @@ class GPLParser implements GPLTokens {
             case ']':
             case NL:
             case ',':
-                return yyr55();
+                return yyr53();
         }
-        return 267;
+        return 271;
     }
 
     private int yys57() {
@@ -3627,52 +3741,12 @@ class GPLParser implements GPLTokens {
             case ']':
             case NL:
             case ',':
-                return yyr53();
+                return yyr51();
         }
-        return 267;
+        return 271;
     }
 
     private int yys58() {
-        switch (yytok) {
-            case EQ:
-                return 25;
-            case GE:
-                return 26;
-            case GT:
-                return 27;
-            case LE:
-                return 28;
-            case LT:
-                return 29;
-            case NE:
-                return 30;
-            case '%':
-                return 31;
-            case '&':
-                return 32;
-            case '*':
-                return 33;
-            case '+':
-                return 34;
-            case '-':
-                return 35;
-            case '/':
-                return 36;
-            case '^':
-                return 37;
-            case '|':
-                return 38;
-            case ')':
-            case ENDINPUT:
-            case ']':
-            case NL:
-            case ',':
-                return yyr51();
-        }
-        return 267;
-    }
-
-    private int yys59() {
         switch (yytok) {
             case '&':
                 return 32;
@@ -3698,10 +3772,10 @@ class GPLParser implements GPLTokens {
             case GE:
                 return yyr47();
         }
-        return 267;
+        return 271;
     }
 
-    private int yys60() {
+    private int yys59() {
         switch (yytok) {
             case ')':
             case LT:
@@ -3724,10 +3798,10 @@ class GPLParser implements GPLTokens {
             case GE:
                 return yyr49();
         }
-        return 267;
+        return 271;
     }
 
-    private int yys61() {
+    private int yys60() {
         switch (yytok) {
             case '&':
                 return 32;
@@ -3753,7 +3827,39 @@ class GPLParser implements GPLTokens {
             case GE:
                 return yyr44();
         }
-        return 267;
+        return 271;
+    }
+
+    private int yys61() {
+        switch (yytok) {
+            case '%':
+                return 31;
+            case '&':
+                return 32;
+            case '*':
+                return 33;
+            case '/':
+                return 36;
+            case '^':
+                return 37;
+            case '|':
+                return 38;
+            case ')':
+            case LT:
+            case LE:
+            case EQ:
+            case ENDINPUT:
+            case ']':
+            case NL:
+            case GT:
+            case '-':
+            case ',':
+            case '+':
+            case NE:
+            case GE:
+                return yyr42();
+        }
+        return 271;
     }
 
     private int yys62() {
@@ -3783,41 +3889,38 @@ class GPLParser implements GPLTokens {
             case '+':
             case NE:
             case GE:
-                return yyr42();
+                return yyr43();
         }
-        return 267;
+        return 271;
     }
 
     private int yys63() {
         switch (yytok) {
-            case '%':
-                return 31;
             case '&':
                 return 32;
-            case '*':
-                return 33;
-            case '/':
-                return 36;
             case '^':
                 return 37;
             case '|':
                 return 38;
             case ')':
             case LT:
+            case '%':
             case LE:
             case EQ:
             case ENDINPUT:
             case ']':
+            case '/':
             case NL:
             case GT:
             case '-':
             case ',':
             case '+':
+            case '*':
             case NE:
             case GE:
-                return yyr43();
+                return yyr45();
         }
-        return 267;
+        return 271;
     }
 
     private int yys64() {
@@ -3844,41 +3947,12 @@ class GPLParser implements GPLTokens {
             case '*':
             case NE:
             case GE:
-                return yyr45();
+                return yyr46();
         }
-        return 267;
+        return 271;
     }
 
     private int yys65() {
-        switch (yytok) {
-            case '&':
-                return 32;
-            case '^':
-                return 37;
-            case '|':
-                return 38;
-            case ')':
-            case LT:
-            case '%':
-            case LE:
-            case EQ:
-            case ENDINPUT:
-            case ']':
-            case '/':
-            case NL:
-            case GT:
-            case '-':
-            case ',':
-            case '+':
-            case '*':
-            case NE:
-            case GE:
-                return yyr46();
-        }
-        return 267;
-    }
-
-    private int yys66() {
         switch (yytok) {
             case '&':
                 return 32;
@@ -3902,10 +3976,40 @@ class GPLParser implements GPLTokens {
             case GE:
                 return yyr48();
         }
-        return 267;
+        return 271;
     }
 
-    private int yys79() {
+    private int yys70() {
+        switch (yytok) {
+            case '(':
+                return 40;
+            case '.':
+                return 41;
+            case ')':
+            case LT:
+            case '&':
+            case '%':
+            case LE:
+            case EQ:
+            case ENDINPUT:
+            case '|':
+            case '^':
+            case ']':
+            case '/':
+            case NL:
+            case GT:
+            case '-':
+            case ',':
+            case '+':
+            case '*':
+            case NE:
+            case GE:
+                return yyr58();
+        }
+        return 271;
+    }
+
+    private int yys80() {
         switch (yytok) {
             case ')':
             case LT:
@@ -3928,39 +4032,7 @@ class GPLParser implements GPLTokens {
             case GE:
                 return yyr56();
         }
-        return 267;
-    }
-
-    private int yys100() {
-        switch (yytok) {
-            case EXIT:
-                return 11;
-            case ID:
-                return 12;
-            case IF:
-                return 13;
-            case INCLUDE:
-                return 14;
-            case LAST:
-                return 15;
-            case NEXT:
-                return 16;
-            case NUMBER:
-                return 17;
-            case PRINT:
-                return 18;
-            case RETURN:
-                return 19;
-            case STRING_LITERAL:
-                return 20;
-            case TYPE:
-                return 21;
-            case WHILE:
-                return 22;
-            case '(':
-                return 23;
-        }
-        return 267;
+        return 271;
     }
 
     private int yys102() {
@@ -3992,10 +4064,10 @@ class GPLParser implements GPLTokens {
             case '(':
                 return 23;
         }
-        return 267;
+        return 271;
     }
 
-    private int yys103() {
+    private int yys104() {
         switch (yytok) {
             case EXIT:
                 return 11;
@@ -4024,10 +4096,10 @@ class GPLParser implements GPLTokens {
             case '(':
                 return 23;
         }
-        return 267;
+        return 271;
     }
 
-    private int yys113() {
+    private int yys105() {
         switch (yytok) {
             case EXIT:
                 return 11;
@@ -4055,48 +4127,8 @@ class GPLParser implements GPLTokens {
                 return 22;
             case '(':
                 return 23;
-            case ELSE:
-                return 118;
-            case ELSIF:
-                return 119;
-            case END:
-                return yyr23();
         }
-        return 267;
-    }
-
-    private int yys114() {
-        switch (yytok) {
-            case EXIT:
-                return 11;
-            case ID:
-                return 12;
-            case IF:
-                return 13;
-            case INCLUDE:
-                return 14;
-            case LAST:
-                return 15;
-            case NEXT:
-                return 16;
-            case NUMBER:
-                return 17;
-            case PRINT:
-                return 18;
-            case RETURN:
-                return 19;
-            case STRING_LITERAL:
-                return 20;
-            case TYPE:
-                return 21;
-            case WHILE:
-                return 22;
-            case '(':
-                return 23;
-            case END:
-                return 120;
-        }
-        return 267;
+        return 271;
     }
 
     private int yys115() {
@@ -4127,13 +4159,85 @@ class GPLParser implements GPLTokens {
                 return 22;
             case '(':
                 return 23;
-            case END:
+            case ELSE:
+                return 120;
+            case ELSIF:
                 return 121;
+            case END:
+                return yyr23();
         }
-        return 267;
+        return 271;
     }
 
-    private int yys118() {
+    private int yys116() {
+        switch (yytok) {
+            case EXIT:
+                return 11;
+            case ID:
+                return 12;
+            case IF:
+                return 13;
+            case INCLUDE:
+                return 14;
+            case LAST:
+                return 15;
+            case NEXT:
+                return 16;
+            case NUMBER:
+                return 17;
+            case PRINT:
+                return 18;
+            case RETURN:
+                return 19;
+            case STRING_LITERAL:
+                return 20;
+            case TYPE:
+                return 21;
+            case WHILE:
+                return 22;
+            case '(':
+                return 23;
+            case END:
+                return 122;
+        }
+        return 271;
+    }
+
+    private int yys117() {
+        switch (yytok) {
+            case EXIT:
+                return 11;
+            case ID:
+                return 12;
+            case IF:
+                return 13;
+            case INCLUDE:
+                return 14;
+            case LAST:
+                return 15;
+            case NEXT:
+                return 16;
+            case NUMBER:
+                return 17;
+            case PRINT:
+                return 18;
+            case RETURN:
+                return 19;
+            case STRING_LITERAL:
+                return 20;
+            case TYPE:
+                return 21;
+            case WHILE:
+                return 22;
+            case '(':
+                return 23;
+            case END:
+                return 123;
+        }
+        return 271;
+    }
+
+    private int yys120() {
         switch (yytok) {
             case EXIT:
                 return 11;
@@ -4162,10 +4266,10 @@ class GPLParser implements GPLTokens {
             case '(':
                 return 23;
         }
-        return 267;
+        return 271;
     }
 
-    private int yys128() {
+    private int yys130() {
         switch (yytok) {
             case EXIT:
                 return 11;
@@ -4194,7 +4298,7 @@ class GPLParser implements GPLTokens {
             case '(':
                 return 23;
         }
-        return 267;
+        return 271;
     }
 
     private int yyr1() { // start : start NL block
@@ -4219,9 +4323,9 @@ class GPLParser implements GPLTokens {
 
     private int yypactions() {
         switch (yyst[yysp-1]) {
-            case 102: return 110;
-            case 100: return 107;
-            default: return 111;
+            case 104: return 112;
+            case 102: return 109;
+            default: return 113;
         }
     }
 
@@ -4239,8 +4343,8 @@ class GPLParser implements GPLTokens {
 
     private int yypargs() {
         switch (yyst[yysp-1]) {
-            case 84: return 96;
-            default: return 68;
+            case 85: return 98;
+            default: return 67;
         }
     }
 
@@ -4258,8 +4362,8 @@ class GPLParser implements GPLTokens {
 
     private int yypargswrapper() {
         switch (yyst[yysp-1]) {
-            case 40: return 69;
-            default: return 97;
+            case 40: return 68;
+            default: return 99;
         }
     }
 
@@ -4292,7 +4396,7 @@ class GPLParser implements GPLTokens {
     private int yypblock() {
         switch (yyst[yysp-1]) {
             case 0: return 3;
-            default: return 52;
+            default: return 51;
         }
     }
 
@@ -4326,18 +4430,18 @@ class GPLParser implements GPLTokens {
 
     private int yypdefargs() {
         switch (yyst[yysp-1]) {
-            case 67: return 80;
-            default: return 112;
+            case 66: return 81;
+            default: return 114;
         }
     }
 
     private int yyr26() { // defargswrapper : defargs
         yysp -= 1;
-        return 81;
+        return 82;
     }
 
     private int yyr27() { // defargswrapper : /* empty */
-        return 81;
+        return 82;
     }
 
     private int yyr6() { // defun : DEF ID '(' defargswrapper ')' NL actions NL END
@@ -4361,19 +4465,19 @@ class GPLParser implements GPLTokens {
 
     private int yypelsec() {
         switch (yyst[yysp-1]) {
-            case 113: return 116;
-            default: return 131;
+            case 115: return 118;
+            default: return 133;
         }
     }
 
     private int yyr39() { // expr : ID '.' ID '(' argswrapper ')'
-        {yyrv = new SemanticWrapper(invoke(((StringType)(yysv[yysp-6].val)).getValue(), ((StringType)(yysv[yysp-4].val)).getValue(), ( yysv[yysp-2].val==null ? null : (ArrayList<Object>)(yysv[yysp-2].val) )));}
+        {yyrv = new SemanticWrapper(invoke(((StringType)(yysv[yysp-6].val)).getValue(), ((StringType)(yysv[yysp-4].val)).getValue(), ( yysv[yysp-2].val==null ? null : (ArrayList<Object>)(yysv[yysp-2].val) ))); setReturn(yyrv);}
         yysv[yysp-=6] = yyrv;
         return yypexpr();
     }
 
     private int yyr40() { // expr : ID '(' argswrapper ')'
-        {yyrv = new SemanticWrapper(invoke(((StringType)(yysv[yysp-4].val)).getValue(), ( yysv[yysp-2].val==null ? null : (ArrayList<Object>)(yysv[yysp-2].val) ))); }
+        {yyrv = new SemanticWrapper(invoke(((StringType)(yysv[yysp-4].val)).getValue(), ( yysv[yysp-2].val==null ? null : (ArrayList<Object>)(yysv[yysp-2].val) ))); setReturn(yyrv);}
         yysv[yysp-=4] = yyrv;
         return yypexpr();
     }
@@ -4386,20 +4490,20 @@ class GPLParser implements GPLTokens {
 
     private int yypexpr() {
         switch (yyst[yysp-1]) {
-            case 124: return 126;
-            case 98: return 86;
-            case 92: return 86;
-            case 85: return 70;
-            case 84: return 70;
-            case 77: return 91;
-            case 73: return 86;
-            case 49: return 78;
+            case 126: return 128;
+            case 100: return 87;
+            case 94: return 87;
+            case 86: return 69;
+            case 85: return 69;
+            case 78: return 93;
+            case 73: return 87;
+            case 48: return 79;
+            case 46: return 77;
             case 45: return 76;
             case 44: return 75;
             case 43: return 74;
             case 42: return 72;
-            case 40: return 70;
-            case 19: return 46;
+            case 40: return 69;
             default: return 6;
         }
     }
@@ -4418,9 +4522,9 @@ class GPLParser implements GPLTokens {
 
     private int yyplistofexpr() {
         switch (yyst[yysp-1]) {
-            case 92: return 101;
-            case 73: return 87;
-            default: return 106;
+            case 94: return 103;
+            case 73: return 88;
+            default: return 108;
         }
     }
 
@@ -4435,7 +4539,8 @@ class GPLParser implements GPLTokens {
     }
 
     private int yyr11() { // action : INCLUDE '(' expr ')'
-        yysp -= 4;
+        {include(((Type)yysv[yysp-2].val).getValue()); setReturn(null);}
+        yysv[yysp-=4] = yyrv;
         return yypaction();
     }
 
@@ -4455,8 +4560,8 @@ class GPLParser implements GPLTokens {
         return yypaction();
     }
 
-    private int yyr15() { // action : RETURN expr
-        yysp -= 2;
+    private int yyr15() { // action : RETURN '(' expr ')'
+        yysp -= 4;
         return yypaction();
     }
 
@@ -4488,14 +4593,14 @@ class GPLParser implements GPLTokens {
 
     private int yypaction() {
         switch (yyst[yysp-1]) {
-            case 128: return 129;
-            case 118: return 123;
-            case 103: return 108;
-            case 102: return 108;
-            case 100: return 108;
+            case 130: return 131;
+            case 120: return 125;
+            case 105: return 110;
+            case 104: return 110;
+            case 102: return 110;
             case 24: return 7;
             case 0: return 7;
-            default: return 117;
+            default: return 119;
         }
     }
 
@@ -4618,21 +4723,21 @@ class GPLParser implements GPLTokens {
 
     private int yypvalexpr() {
         switch (yyst[yysp-1]) {
-            case 38: return 66;
-            case 37: return 65;
-            case 36: return 64;
-            case 35: return 63;
-            case 34: return 62;
-            case 33: return 61;
-            case 32: return 60;
-            case 31: return 59;
-            case 30: return 58;
-            case 29: return 57;
-            case 28: return 56;
-            case 27: return 55;
-            case 26: return 54;
-            case 25: return 53;
-            case 23: return 50;
+            case 38: return 65;
+            case 37: return 64;
+            case 36: return 63;
+            case 35: return 62;
+            case 34: return 61;
+            case 33: return 60;
+            case 32: return 59;
+            case 31: return 58;
+            case 30: return 57;
+            case 29: return 56;
+            case 28: return 55;
+            case 27: return 54;
+            case 26: return 53;
+            case 25: return 52;
+            case 23: return 49;
             default: return 9;
         }
     }
@@ -4705,6 +4810,9 @@ class GPLParser implements GPLTokens {
     }
     
   }
+  
+  private void include(String fileName) {}
+  
   /**
   * This invokes a user defined function
   */
@@ -4733,8 +4841,9 @@ class GPLParser implements GPLTokens {
         System.exit(1);
     }
     
+    lexer.evalFunction(f.code, f.args, args);
     
-    return lexer.evalFunction(f.code, f.args, args);
+    return lexer.lastReturn;
   }
   
   /**
@@ -4809,12 +4918,7 @@ class GPLParser implements GPLTokens {
   public void setPreprocessor(Preprocessor p) {
     
     this.p = p;
-    
-    for (FunctionDef ff : p.functions) {
-        Function f = new Function(ff.name, ff.code, ff.paramsType);
-        f.args = ff.args;
-        scopes.peek().put(f.name, f);
-    }
+    lexer.loadFunctions(p);
     
   }
   

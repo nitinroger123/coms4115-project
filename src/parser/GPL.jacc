@@ -38,6 +38,8 @@
     private Stack<Boolean> ifEvaluatedToTrue = new Stack<Boolean>();
     private Stack<Integer> skipCounter = new Stack<Integer>();
     
+    public Object lastReturn;
+    
     //This tells the lexer to start recording the character stream (used for backtracking)
     private boolean record = false;
     private int recordCap = 0;
@@ -83,6 +85,7 @@
                 }
             }
             //System.out.println((toSkip.size()==0 || !toSkip.peek() ? "" : " -- ") + ((char)c=='\n' ? "NL" : (char)c) + " : " + c);
+            
             return c;
         } catch (Exception e) {
             return -1;
@@ -379,7 +382,40 @@
                 }
             } else if (s.equals("include")) {
                 if (toSkip.size()==0 || !toSkip.peek()) {
-                    return token=INCLUDE;
+                
+                    String line = getLine();
+                    
+                    eval(line, true, false);
+                    String randomFile = (int)(Math.random()*1000) + ".tmp";
+                    Preprocessor preprocessor2 = null;
+                    BufferedReader reader = null;
+                    
+                    try {
+                        preprocessor2 = new Preprocessor(((Type)(lastReturn)).getValue(), randomFile);
+                        reader = new BufferedReader(new FileReader(randomFile));
+                    } catch (Exception e) {
+                        System.out.println("Bad file name '" + ((Type)(lastReturn)).getValue() + "', include failed.");
+                        System.exit(1);
+                    }
+                    
+                    if (preprocessor2==null) return nextToken();
+                    loadFunctions(preprocessor2);
+                    if (reader!=null) {
+                        String code = "";
+                        String s;
+                        try {
+                            while((s = reader.readLine()) != null){
+                                code = code + s + (char)13 + "\n";
+                            }
+                            
+                            File aFile = new File(randomFile);
+                            aFile.delete();
+                        } catch (Exception e) {}
+                        
+                        eval(code, true, false);
+                    }
+                    
+                    return nextToken();
                 } else {
                     return nextToken();
                 }
@@ -606,7 +642,15 @@
             } else if (s.equals("exit")) {
                 return token=EXIT;
             } else if (s.equals("return")) {
-                return token=RETURN;
+                if (toSkip.size()==0 || !toSkip.peek()) {
+                    eval(getLine());
+                    
+                    //This forces the current input stream to end
+                    lastChar = -1;
+                    return token=RETURN;
+                } else {
+                    return nextToken();
+                }
             } else if (s.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
                 yylval = new SemanticWrapper(new StringType(s));
                 return token=ID;
@@ -624,25 +668,32 @@
     }
 	
     private boolean eval(String code) {
-        return eval(code, true);
+        return eval(code, true, true);
+    }
+    
+    private boolean eval(String code, boolean interactive) {
+        return eval(code, interactive, true);
     }
     
     /**
         Does not handle scopes, caller takes care of it!
     */
-    private boolean eval(String code, boolean interactive) {
+    private boolean eval(String code, boolean interactive, boolean strip) {
         
         lastChar = 32;
         
+        lastReturn = null;
+        
         //Strip off all extra new lines
-        while (code.charAt(0)=='\n' || code.charAt(0)==13) {
-            code = code.substring(1,code.length());
+        if (strip) {
+            while (code.charAt(0)=='\n' || code.charAt(0)==13) {
+                code = code.substring(1,code.length());
+            }
         }
         
         inputs.push(new StringReader(code));
         
         /*
-        
         System.out.println("---------------- Eval: --------------");
         System.out.println(code);
         System.out.println("-----------Scope content ------------");
@@ -672,10 +723,17 @@
             record = savedRecord;
         }
         
-        //System.out.println(liner.getReturn());
         
         if (liner.getReturn()==null) return false;
-        return GPLHelper.isTrue(((NumberType)(liner.getReturn().val)).getDouble());
+        
+        lastReturn = liner.getReturn().val;
+        
+        boolean theReturn = false;
+        
+        try {
+            theReturn = GPLHelper.isTrue(((NumberType)(liner.getReturn().val)).getDouble());
+        } catch (Exception e) {}
+        return theReturn;
     }
     
     public Object evalFunction(String code, ArrayList<String> formalArgs, ArrayList<Object> actualArgs) {
@@ -688,7 +746,15 @@
         }
         eval(code);
         scopes.pop();
-        return null;
+        return lastReturn;
+    }
+    
+    public void loadFunctions(Preprocessor p) {
+        for (FunctionDef ff : p.functions) {
+            Function f = new Function(ff.name, ff.code, ff.paramsType);
+            f.args = ff.args;
+            scopes.get(0).put(f.name, f);
+        }
     }
     
 	SemanticWrapper getSemantic() {
@@ -708,6 +774,7 @@
             
             
             while ((line = scanner.nextLine())!=null) {
+                line = line + (char)13 + "\n";
                 GPLLexer  lexer  = new GPLLexer();
                 if (scopes==null) {
                     scopes = lexer.getScopes();
@@ -722,7 +789,7 @@
                 liner.setInteractive(true);
                 liner.parse();
                 
-                if (liner.getReturn()!=null) {
+                if (liner.getReturn()!=null && liner.getReturn().val!=null) {
                     System.out.println(((Type)(liner.getReturn().val)).getValue());
                 }
                 System.out.println("Successfully executed in " + ((System.currentTimeMillis() - start)/1000.0) + " seconds");
@@ -733,7 +800,7 @@
 
       } else {
           String file = args[0];
-          Preprocessor p = new Preprocessor(file);
+          Preprocessor p = new Preprocessor(file, "notused.tmp");
           GPLLexer  lexer  = new GPLLexer();
           lexer.nextToken();
           GPLParser parser = new GPLParser(lexer);
@@ -793,11 +860,11 @@ actions : action
         
 action 	: IF '(' expr ')' NL actions NL elsec END
 		| WHILE '(' expr ')' NL actions NL END
-		| INCLUDE '(' expr ')'
+		| INCLUDE '(' expr ')'          {include(((Type)$3.val).getValue()); setReturn(null);}
 		| PRINT '(' expr ')'            {System.out.println(((Type)$3.val).getValue()); setReturn(null); }
 		| NEXT
 		| LAST
-		| RETURN expr
+		| RETURN '(' expr ')'
 		| RETURN
 		| EXIT							{System.exit(0); setReturn(null); }
 		| declaration
@@ -833,8 +900,8 @@ listofexpr: expr ',' listofexpr				{((ArrayList<Object>)$$.val).add(0,$1.val);}
 			| expr					{$$ = new SemanticWrapper(new ArrayList<Object>()); ((ArrayList<Object>)($$.val)).add($1.val);}
 			;
 /* get rid of the char strings */
-expr		: ID '.' ID '(' argswrapper ')' {$$ = new SemanticWrapper(invoke(((StringType)($1.val)).getValue(), ((StringType)($3.val)).getValue(), ( $5.val==null ? null : (ArrayList<Object>)($5.val) )));}
-			| ID '(' argswrapper ')'        {$$ = new SemanticWrapper(invoke(((StringType)($1.val)).getValue(), ( $3.val==null ? null : (ArrayList<Object>)($3.val) ))); }
+expr		: ID '.' ID '(' argswrapper ')' {$$ = new SemanticWrapper(invoke(((StringType)($1.val)).getValue(), ((StringType)($3.val)).getValue(), ( $5.val==null ? null : (ArrayList<Object>)($5.val) ))); setReturn($$);}
+			| ID '(' argswrapper ')'        {$$ = new SemanticWrapper(invoke(((StringType)($1.val)).getValue(), ( $3.val==null ? null : (ArrayList<Object>)($3.val) ))); setReturn($$);}
 			| valexpr                       {$$.val = $1.val;}
 			;
 /* TODO: unary negation operator */
@@ -929,6 +996,9 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup(((StringType)($
     }
     
   }
+  
+  private void include(String fileName) {}
+  
   /**
   * This invokes a user defined function
   */
@@ -957,8 +1027,9 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup(((StringType)($
         System.exit(1);
     }
     
+    lexer.evalFunction(f.code, f.args, args);
     
-    return lexer.evalFunction(f.code, f.args, args);
+    return lexer.lastReturn;
   }
   
   /**
@@ -1033,12 +1104,7 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup(((StringType)($
   public void setPreprocessor(Preprocessor p) {
     
     this.p = p;
-    
-    for (FunctionDef ff : p.functions) {
-        Function f = new Function(ff.name, ff.code, ff.paramsType);
-        f.args = ff.args;
-        scopes.peek().put(f.name, f);
-    }
+    lexer.loadFunctions(p);
     
   }
   
