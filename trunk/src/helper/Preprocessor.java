@@ -18,9 +18,12 @@ public class Preprocessor {
 	public ArrayList<String> code = new ArrayList<String>();
  	public ArrayList<FunctionDef> functions = new ArrayList<FunctionDef>();
  	String fileName;
+ 	String targetFile;
  	
-	public Preprocessor(String filename) throws IOException{
+ 	
+	public Preprocessor(String filename, String target) throws IOException{
 		this.fileName = filename;
+		targetFile = target;
 		//processFunctions(filename);
 		removeCommentsAndReplaceCharacters();
 	}
@@ -262,7 +265,7 @@ public class Preprocessor {
 	 */
 	private void replaceSpecialCharacters() throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader("temp1.gpl"));
-		BufferedWriter writer = new BufferedWriter(new FileWriter("toParser.gpl"));
+		BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile));
 		String s ="";
 		while((s = reader.readLine()) != null){
 			String temp = s;
@@ -314,7 +317,7 @@ public class Preprocessor {
 	 * @throws IOException
 	 */
 	public static void main(String args[]) throws IOException{
-		Preprocessor p = new Preprocessor(args[0]);
+		Preprocessor p = new Preprocessor(args[0], args[1]);
 		
 		/*for(FunctionDef f : p.functions){
 			System.out.println("Name "+f.name);
