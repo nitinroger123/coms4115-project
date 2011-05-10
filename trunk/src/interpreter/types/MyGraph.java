@@ -297,10 +297,6 @@ public class MyGraph implements Type{
                 }
             }
         }
-        for(Edge e: edgesMST) {
-            System.out.println(e.node1.toString() + " " + e.node2.id.toString() + " " + e.cost); 
-        }
-        System.out.println("mst!");
         MyGraph mst = new MyGraph();
         mst.nodes = this.nodes;
         mst.edges = edgesMST;
