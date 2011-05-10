@@ -9,9 +9,9 @@ import interpreter.types.NumberType;
 
 public class Main {
     public static void main(String args[]){
-        mstTest();
+//        mstTest();
         dfsTest();
-        bfsTest();
+//        bfsTest();
     }
 
     // Graph from http://en.wikipedia.org/wiki/File:Msp1.jpg
@@ -33,14 +33,14 @@ public class Main {
 
     public static void mstTest() {
         MyGraph graph = getTestGraph();
-        graph.visualize(graph.minimumSpanningTree());
+        graph.minimumSpanningTree().visualize();
     }
     
     public static void dfsTest() {
         MyGraph graph = getTestGraph();
         Node start = graph.getNodeByInt(0);
         Node end = graph.getNodeByInt(2);
-        MyGraph temp = graph.dfs(start, end);
+        MyGraph temp = graph.dfs2(start, end);
         System.out.println(temp.getNumberOfEdges());
         System.out.println(temp.getNumberOfNodes());
         temp.visualize();

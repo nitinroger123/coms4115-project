@@ -18,16 +18,16 @@ public class MyGraphTest {
         Node n2 = new Node(new NumberType(2.0));
         Node n3 = new Node(new NumberType(3.0));
         Node n4 = new Node(new NumberType(4.0));
-        testGraph.addNode(n1);
-        testGraph.addNode(n2);
-        testGraph.addNode(n3);
-        testGraph.addNode(n4);
+        testGraph.addNode2(n1);
+        testGraph.addNode2(n2);
+        testGraph.addNode2(n3);
+        testGraph.addNode2(n4);
         Edge e = new Edge(n1, n2, new NumberType(1.0));
-        testGraph.addEdge(e);
+        testGraph.addEdge2(e);
         e = new Edge(n1, n3, new NumberType(1.0));
-        testGraph.addEdge(e);
+        testGraph.addEdge2(e);
         e = new Edge(n1, n4, new NumberType(1.0));
-        testGraph.addEdge(e);
+        testGraph.addEdge2(e);
         Vector pr = testGraph.getPageRank();
         pr.print();
     }
@@ -68,8 +68,8 @@ public class MyGraphTest {
     public void testGraphCreation(){
         Node n1 = new Node(new NumberType(1.0));
         Node n2 = new Node(new NumberType(2.0));
-        testGraph.addNode(n1);
-        testGraph.addNode(n2);
+        testGraph.addNode2(n1);
+        testGraph.addNode2(n2);
         assertEquals(2,testGraph.getNumberOfNodes());
     }
 
@@ -80,10 +80,10 @@ public class MyGraphTest {
     public void testEdgeAddition(){
         Node n1 = new Node(new NumberType(1.0));
         Node n2 = new Node(new NumberType(2.0));
-        testGraph.addNode(n1);
-        testGraph.addNode(n2);
+        testGraph.addNode2(n1);
+        testGraph.addNode2(n2);
         Edge e = new Edge(n1, n2, new NumberType(1.0));
-        testGraph.addEdge(e);
+        testGraph.addEdge2(e);
         assertTrue(n1.getAdjacent().contains(n2));
         assertTrue(n2.getAdjacent().contains(n1));
     }
@@ -98,24 +98,24 @@ public class MyGraphTest {
         Node n3 = new Node(new NumberType(3.0));
         Node n4 = new Node(new NumberType(4.0));
         Node n5 = new Node(new NumberType(5.0));
-        testGraph.addNode(n1);
-        testGraph.addNode(n2);
-        testGraph.addNode(n3);
-        testGraph.addNode(n4);
-        testGraph.addNode(n5);
+        testGraph.addNode2(n1);
+        testGraph.addNode2(n2);
+        testGraph.addNode2(n3);
+        testGraph.addNode2(n4);
+        testGraph.addNode2(n5);
         Edge e = new Edge(n1, n2, new NumberType(1.0));
-        testGraph.addEdge(e);
+        testGraph.addEdge2(e);
         e = new Edge(n1, n5, new NumberType(1.0));
-        testGraph.addEdge(e);
+        testGraph.addEdge2(e);
         e = new Edge(n2, n4, new NumberType(1.0));
-        testGraph.addEdge(e);
+        testGraph.addEdge2(e);
         e = new Edge(n2, n3, new NumberType(1.0));
-        testGraph.addEdge(e);
+        testGraph.addEdge2(e);
         e = new Edge(n5, n4, new NumberType(1.0));
-        testGraph.addEdge(e);
+        testGraph.addEdge2(e);
         testGraph.bfs(n1 , n4).printNodes();
         assertEquals(3,testGraph.bfs(n1 , n4).getNumberOfEdges());
-        assertEquals(4,testGraph.bfs(n1).getNumberOfEdges());
+        assertEquals(4,testGraph.bfs2(n1).getNumberOfEdges());
     }
 
     /**
@@ -130,11 +130,11 @@ public class MyGraphTest {
         Node n5 = new Node(new NumberType(5.0));
         Node n6 = n5.clone();
         System.out.println(n6.equals(n5));
-        testGraph.addNode(n1);
-        testGraph.addNode(n2);
-        testGraph.addNode(n3);
-        testGraph.addNode(n4);
-        testGraph.addNode(n5);
+        testGraph.addNode2(n1);
+        testGraph.addNode2(n2);
+        testGraph.addNode2(n3);
+        testGraph.addNode2(n4);
+        testGraph.addNode2(n5);
         String expected = "1.0 2.0 3.0 4.0 5.0 ";
         assertEquals(expected, testGraph.printNodes());
     }
@@ -147,7 +147,7 @@ public class MyGraphTest {
         MyGraph graph = getTestGraph();
         Node start = graph.getNodeByInt(0);
         Node end = graph.getNodeByInt(2);
-        graph = graph.dfs(start, end);
+        graph = graph.dfs2(start, end);
         String expected = "1.0 4.0 5.0 6.0 3.0 ";
         assertEquals(expected, graph.printNodes());
     }
@@ -163,21 +163,21 @@ public class MyGraphTest {
         Node n3 = new Node(new NumberType(3.0));
         Node n4 = new Node(new NumberType(4.0));
         Node n5 = new Node(new NumberType(5.0));
-        testGraph.addNode(n1);
-        testGraph.addNode(n2);
-        testGraph.addNode(n3);
-        testGraph.addNode(n4);
-        testGraph.addNode(n5);
+        testGraph.addNode2(n1);
+        testGraph.addNode2(n2);
+        testGraph.addNode2(n3);
+        testGraph.addNode2(n4);
+        testGraph.addNode2(n5);
         Edge e = new Edge(n1, n2, new NumberType(1.0));
-        testGraph.addEdge(e);
+        testGraph.addEdge2(e);
         e = new Edge(n1, n5, new NumberType(1.0));
-        testGraph.addEdge(e);
+        testGraph.addEdge2(e);
         e = new Edge(n2, n4, new NumberType(1.0));
-        testGraph.addEdge(e);
+        testGraph.addEdge2(e);
         e = new Edge(n2, n3, new NumberType(1.0));
-        testGraph.addEdge(e);
+        testGraph.addEdge2(e);
         e = new Edge(n5, n4, new NumberType(1.0));
-        testGraph.addEdge(e);
+        testGraph.addEdge2(e);
         Double [][] adj = testGraph.getAdjMatrix();
         for(int i=0;i<testGraph.getNumberOfNodes();i++){
             for(int j=0;j<testGraph.getNumberOfEdges();j++){
