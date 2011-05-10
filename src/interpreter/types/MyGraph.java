@@ -588,20 +588,6 @@ public class MyGraph implements Type{
     }
 
     /**
-     * Visualizes the graph with the specified edges
-     * @param specificEdges
-     */
-    public void visualize(ArrayList<Edge> specificEdges){
-        MyGraph temp = new MyGraph(this);
-        while(temp.edges.size() != 0){
-            temp.removeEdge(temp.edges.get(temp.getNumberOfEdges()-1));
-        }
-        temp.addAllEdges(specificEdges);
-        DisplayGraph g = new DisplayGraph(temp);
-        g.setVisible(true);
-    }
-
-    /**
      * Traverses the nodes and applies the function passed in
      * @param f
      */
