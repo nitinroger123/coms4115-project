@@ -1,4 +1,4 @@
-// Output created by jacc on Tue May 10 05:21:55 EDT 2011
+// Output created by jacc on Tue May 10 11:11:11 EDT 2011
 
 package parser;
 
@@ -734,12 +734,16 @@ package parser;
         return theReturn;
     }
     
-    public Object evalFunction(String code, ArrayList<String> formalArgs, ArrayList<Object> actualArgs) {
+    public Object evalFunction(String code, ArrayList<String> formalArgs, ArrayList<Object> actualArgs, ArrayList<String> paramsType) {
         scopes.push(new HashMap<String, Object>());
         
         int i = 0;
         for (String a : formalArgs) {
-            scopes.peek().put(a, actualArgs.get(i));
+            if (paramsType.get(i).equals("Function")) {
+                scopes.get(0).put(a, actualArgs.get(i));
+            } else {
+                scopes.peek().put(a, actualArgs.get(i));
+            }
             i++;
         }
         eval(code);
@@ -4374,7 +4378,7 @@ class GPLParser implements GPLTokens {
     }
 
     private int yyr36() { // assignment : ID '=' '[' listofexpr ']'
-        {declareList(((StringType)(yysv[yysp-5].val)).getValue(),((StringType)(yysv[yysp-4].val)).getValue(),yysv[yysp-1].val); }
+        {declareList(null,((StringType)(yysv[yysp-5].val)).getValue(),yysv[yysp-2].val); setReturn(new SemanticWrapper(lookup(((StringType)(yysv[yysp-5].val)).getValue())));}
         yysv[yysp-=5] = yyrv;
         return 2;
     }
@@ -4841,7 +4845,7 @@ class GPLParser implements GPLTokens {
         System.exit(1);
     }
     
-    lexer.evalFunction(f.code, f.args, args);
+    lexer.evalFunction(f.code, f.args, args, f.paramsType);
     
     return lexer.lastReturn;
   }
@@ -4894,13 +4898,18 @@ class GPLParser implements GPLTokens {
         scopes.peek().put(name, (val==null ? new MyGraph() : (MyGraph)val));
     } else if (type.equals("String")) {
         scopes.peek().put(name, (val==null ? new StringType() : (StringType)val));
+    } else if (type.equals("Function")) {
+        scopes.get(0).put(name, (val==null ? new Function() : (Function)val));
     }
   }
   
   private void declareList(String type, String name, Object val){
-    if(type.equals("Graph")){
-       scopes.peek().put(name, (val==null ? new MyGraph() : new MyGraph((List<Type>)val)));
-    }else{
+    //Assignment
+    if (type==null) {
+        scopes.peek().put(name, (val==null ? new MyGraph() : new MyGraph((List<Type>)val)));
+    } else if (type.equals("Graph")){
+        scopes.peek().put(name, (val==null ? new MyGraph() : new MyGraph((List<Type>)val)));
+    } else {
         System.out.print("Type " + type + " does not support instantiation with a list!");
         System.exit(1);
     }
