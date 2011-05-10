@@ -7,7 +7,7 @@ import java.util.ArrayList;
  * @author nitin
  *
  */
-public class Function {
+public class Function implements Type {
 	public String name;
 	public String code;
 	public ArrayList<String> paramsType;
@@ -16,6 +16,13 @@ public class Function {
 		this.name = name;
 		this.code = code;
 		this.paramsType = params;
+	}
+	
+	public Function() {}
+	
+	public String getValue() {
+		// TODO Auto-generated method stub
+		return "Function; " + name + paramsType;
 	}
 
 }
