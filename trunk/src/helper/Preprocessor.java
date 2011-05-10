@@ -160,10 +160,10 @@ public class Preprocessor {
 			if(s.contains("!=")){
 				temp = s.replace("!=", "`");
 			}
-			if(s.contains("<=")){
+			if(s.contains(">=")){
 				temp = s.replace(">=", "@");
 			}
-			if(s.contains(">=")){
+			if(s.contains("<=")){
 				temp = s.replace("<=", "$");
 			}
 			if(s.contains("&&")){
