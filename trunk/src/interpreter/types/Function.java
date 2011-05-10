@@ -22,7 +22,7 @@ public class Function implements Type {
 	
 	public String getValue() {
 		// TODO Auto-generated method stub
-		return "Function; " + name + paramsType;
+		return "Function: " + name + paramsType;
 	}
 
 }
