@@ -71,7 +71,7 @@ public class MyGraph implements Type{
      * Adds a node to the graph
      * @param n
      */
-    public void addNode(Node n){
+    public void addNode2(Node n){
         n.index = index;
         nodes.add(n);
         this.numberOfNodes ++;
@@ -84,10 +84,7 @@ public class MyGraph implements Type{
      */
     public void addNode(NumberType value){
         Node n = new Node(value);
-        n.index = index;
-        nodes.add(n);
-        this.numberOfNodes ++;
-        index ++;
+        addNode2(n);
     }
     
     /**
@@ -105,17 +102,14 @@ public class MyGraph implements Type{
      */
     public void addEdge(NumberType t1, NumberType t2, NumberType t3){
         Edge e = new Edge(new Node(t1), new Node(t2), t3);
-        edges.add(e);
-        e.getFirstNode().addAdjacentNode(e.getSecondNode());
-        e.getSecondNode().addAdjacentNode(e.getFirstNode());
-        this.numberOfEdges ++;
+        addEdge2(e);
     }
     
     /**
      * Adds a new edge to the Graph.
      * @param e
      */
-    public void addEdge(Edge e){
+    public void addEdge2(Edge e){
         edges.add(e);
         e.getFirstNode().addAdjacentNode(e.getSecondNode());
         e.getSecondNode().addAdjacentNode(e.getFirstNode());
@@ -139,7 +133,7 @@ public class MyGraph implements Type{
      */
     public void addAllEdges(List<Edge> edges){
         for(Edge e: edges) {
-            addEdge(e);
+            addEdge2(e);
         }
     }
 
@@ -171,7 +165,7 @@ public class MyGraph implements Type{
 
     public MyGraph bfs(NumberType startNode) {
         Node n = nodes.get((int)startNode.getDouble());
-        return bfs(n);
+        return bfs2(n);
     }
     
     /**
@@ -180,7 +174,7 @@ public class MyGraph implements Type{
      * @param start
      * @return
      */
-    public MyGraph bfs(Node start) {
+    public MyGraph bfs2(Node start) {
         MyGraph bfsGraph = new MyGraph();
         ArrayList<Node> queue = new ArrayList<Node>();
         HashMap<Double, Boolean> seen = new HashMap<Double, Boolean>();
@@ -188,7 +182,7 @@ public class MyGraph implements Type{
         queue.add(start);
         start.setDistance(0);
         start.setParent(null);
-        bfsGraph.addNode(start);
+        bfsGraph.addNode2(start);
         while(!queue.isEmpty()){
             Node front = queue.remove(0);
             ArrayList<Node> adjacent = new ArrayList<Node>(front.getAdjacent());
@@ -196,8 +190,8 @@ public class MyGraph implements Type{
                 if(!seen.containsKey(adjNode.getID())){
                     adjNode.setDistance(front.getDistance()+1);
                     adjNode.setParent(front);
-                    bfsGraph.addNode(adjNode);
-                    bfsGraph.addEdge(new Edge(front, adjNode, 1.0));
+                    bfsGraph.addNode2(adjNode);
+                    bfsGraph.addEdge2(new Edge(front, adjNode, 1.0));
                     queue.add(adjNode);
                     seen.put(adjNode.getID(), true);
                 }
@@ -225,7 +219,7 @@ public class MyGraph implements Type{
         queue.add(start);
         start.setDistance(0);
         start.setParent(null);
-        bfsGraph.addNode(start);
+        bfsGraph.addNode2(start);
         while(!queue.isEmpty()){
             Node front = queue.remove(0);
             ArrayList<Node> adjacent = new ArrayList<Node>(front.getAdjacent());
@@ -233,8 +227,8 @@ public class MyGraph implements Type{
                 if(!seen.containsKey(adjNode.getID())){
                     adjNode.setDistance(front.getDistance()+1);
                     adjNode.setParent(front);
-                    bfsGraph.addNode(adjNode);
-                    bfsGraph.addEdge(new Edge(front, adjNode, 1.0)); //1.0 is a dummy cost
+                    bfsGraph.addNode2(adjNode);
+                    bfsGraph.addEdge2(new Edge(front, adjNode, 1.0)); //1.0 is a dummy cost
                     queue.add(adjNode);
                     seen.put(adjNode.getID(), true);
                     /**
@@ -358,7 +352,7 @@ public class MyGraph implements Type{
     }
 
     public MyGraph dfs(NumberType startIndex, NumberType goalIndex) {
-        return dfs(nodes.get(startIndex.getInt()), nodes.get(goalIndex.getInt()));
+        return dfs2(nodes.get(startIndex.getInt()), nodes.get(goalIndex.getInt()));
     }
     
     /**
@@ -367,7 +361,7 @@ public class MyGraph implements Type{
      * @param goal
      * @return
      */
-    public MyGraph dfs(Node start, Node goal) {
+    public MyGraph dfs2(Node start, Node goal) {
         Set<Node> visitedNodeSet = new HashSet<Node>();
         Stack<Node> stack = new Stack<Node>();
         Stack<Node> dfsStack = new Stack<Node>();
@@ -375,7 +369,7 @@ public class MyGraph implements Type{
         Node head = new Node(start.getContents());
         head.setParent(null); 
         stack.add(start);
-        graph.addNode(start);
+        graph.addNode2(start);
         dfsStack.add(head);
         Node temp, childNode;
         Edge e;
@@ -389,7 +383,7 @@ public class MyGraph implements Type{
                 childNode.setParent(dfsStack.peek());
                 e = new Edge(childNode.getParent(), childNode, 1.0);
                 dfsStack.add(childNode);
-                graph.addEdge(e);
+                graph.addEdge2(e);
             }
             // We have reached our destination.
             if(temp.equals(goal)) {
@@ -455,7 +449,7 @@ public class MyGraph implements Type{
         this.index = 0;
         for(Type elem: listElements){
             Node n = new Node(elem);
-            addNode(n);
+            addNode2(n);
         }
     }
 
@@ -584,6 +578,20 @@ public class MyGraph implements Type{
      */
     public void visualize(){
         DisplayGraph g = new DisplayGraph(this);
+        g.setVisible(true);
+    }
+
+    /**
+     * Visualizes the graph with the specified edges
+     * @param specificEdges
+     */
+    public void visualize(ArrayList<Edge> specificEdges){
+        MyGraph temp = new MyGraph(this);
+        while(temp.edges.size() != 0){
+            temp.removeEdge(temp.edges.get(temp.getNumberOfEdges()-1));
+        }
+        temp.addAllEdges(specificEdges);
+        DisplayGraph g = new DisplayGraph(temp);
         g.setVisible(true);
     }
 
