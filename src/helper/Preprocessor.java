@@ -1,7 +1,10 @@
 package helper;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 /**
@@ -13,9 +16,13 @@ public class Preprocessor {
 	public ArrayList<String> functionDefinitions = new ArrayList<String>();
 	public ArrayList<String> code = new ArrayList<String>();
  	public ArrayList<FunctionDef> functions = new ArrayList<FunctionDef>();
+ 	String fileName;
 	public Preprocessor(String filename) throws IOException{
+		this.fileName = filename;
 		processFunctions(filename);
+		removeCommentsAndReplaceCharacters();
 	}
+	
 	public void processFunctions(String fileName) throws IOException{
 		BufferedReader reader = new BufferedReader(new FileReader(fileName));
 		String s = "";
@@ -63,6 +70,94 @@ public class Preprocessor {
 		
 		
 	}
+	
+	/**
+	 * Remove the comments and write to the file. Also change all the dummy characters to the actual
+	 * operator. This is a workaround for jacc
+	 * @throws IOException
+	 */
+	public void removeCommentsAndReplaceCharacters() throws IOException{
+		BufferedWriter writer = new BufferedWriter(new FileWriter("temp.gpl"));
+		BufferedReader reader = new BufferedReader(new FileReader(this.fileName));
+		String s = "";
+		while((s = reader.readLine()) != null){
+			if(!s.contains("#")){
+				writer.write(s+"\n");
+			}
+			else{
+				boolean foundStartQuotes = false;
+				boolean foundEndQuotes = false;
+				boolean foundComment = true;
+				for(int i=0;i<s.length();i++){
+					//found a start or end quote.
+					if(s.charAt(i) == '"'){
+						if(foundStartQuotes){
+							foundEndQuotes = true;
+						}
+						else{
+							foundStartQuotes = true;
+						}
+					}
+					//Found # outside a literal and should be treated as a comment
+					if(s.charAt(i)=='#'){
+						if(foundStartQuotes && foundEndQuotes){
+							foundComment = true;
+							String temp = s.substring(0, i);
+							temp.trim();
+							writer.write(temp+"\n");
+						}
+						if(foundStartQuotes && !foundEndQuotes){
+							foundComment = false;
+						}
+						if(!foundEndQuotes && !foundStartQuotes){
+							foundComment = true;
+						}
+					}
+					
+				}
+				if(!foundComment){
+					writer.write(s+"\n");
+				}
+			}
+			
+		}
+		writer.close();
+		replaceSpecialCharacters();
+	}
+	
+	/**
+	 * Private method to replace special parser characters to the original form
+	 * @throws IOException 
+	 */
+	private void replaceSpecialCharacters() throws IOException {
+		BufferedReader reader = new BufferedReader(new FileReader("temp.gpl"));
+		BufferedWriter writer = new BufferedWriter(new FileWriter("toParser.gpl"));
+		String s ="";
+		while((s = reader.readLine()) != null){
+			String temp = s;
+			if(s.contains("==")){
+				temp = s.replace("==", "~");
+			}
+			if(s.contains("!=")){
+				temp = s.replace("!=", "`");
+			}
+			if(s.contains("<=")){
+				temp = s.replace("<=", "@");
+			}
+			if(s.contains(">=")){
+				temp = s.replace(">=", "$");
+			}
+			if(s.contains("&&")){
+				temp = s.replace("&&", "&");
+			}
+			if(s.contains("||")){
+				temp = s.replace("||", "|");
+			}
+			writer.write(temp+"\n");
+		}
+		writer.close();
+	}
+
 	/**
 	 * Tester code
 	 * @param args
@@ -79,6 +174,7 @@ public class Preprocessor {
 		System.out.println(p.functions.get(1).name);
 		System.out.println(p.functions.get(1).paramsType.get(0));
 		System.out.println(p.functions.get(0).code);
+		//p.removeCommentsAndReplaceCharacters();
 	}
 
 }
