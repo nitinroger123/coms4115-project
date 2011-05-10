@@ -135,6 +135,25 @@ public class Preprocessor {
 		String s ="";
 		while((s = reader.readLine()) != null){
 			String temp = s;
+			boolean foundStartQuote = false;
+			boolean foundEndQuote = false;
+			//Make sure these are not inside a string literal
+			for(int i=0;i<s.length();i++){
+				if(s.charAt(i)=='"'){
+					if(foundStartQuote){
+						foundEndQuote = true;
+					}
+					else{
+						foundStartQuote = true;
+					}
+				}
+			}
+			//String literal found and hence don't replace
+			if(foundEndQuote && foundStartQuote){
+				writer.write(s+"\n");
+				continue;
+			}
+			//Not inside a string literal
 			if(s.contains("==")){
 				temp = s.replace("==", "~");
 			}
