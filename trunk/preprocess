@@ -1,7 +1,24 @@
-def a()
-	print("hello")
+#This is a comment
+def thisIsAFunction(  Number i,  String s,  Graph g )
+	print("hello") #This is also a comment
 end
 
-def b()
-	print("whats up")
+def b(Graph gg)
+	print("whats up #")
 end
+
+if(a <= 2)
+	print(a)
+
+(a == 3)
+	print(a)
+
+if(a != 2)
+	print(a)
+
+if(a >= 3)
+	print(a)
+
+if( a && b)
+
+if(a || b)	
