@@ -695,8 +695,6 @@
             
             
             while ((line = scanner.nextLine())!=null) {
-                System.out.println(line);
-                
                 GPLLexer  lexer  = new GPLLexer();
                 if (scopes==null) {
                     scopes = lexer.getScopes();
