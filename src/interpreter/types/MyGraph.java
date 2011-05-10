@@ -92,8 +92,9 @@ public class MyGraph implements Type{
      * @param nodes
      */
     public void addAllNodes(List<Node> nodes){
-        this.nodes.addAll(nodes);
-        numberOfNodes += nodes.size();
+        for(Node n: nodes) {
+            addNode2(n);
+        }
     }
 
     /**
