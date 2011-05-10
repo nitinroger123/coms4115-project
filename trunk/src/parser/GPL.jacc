@@ -678,6 +678,19 @@
         return GPLHelper.isTrue(((NumberType)(liner.getReturn().val)).getDouble());
     }
     
+    public Object evalFunction(String code, ArrayList<String> formalArgs, ArrayList<Object> actualArgs) {
+        scopes.push(new HashMap<String, Object>());
+        
+        int i = 0;
+        for (String a : formalArgs) {
+            scopes.peek().put(a, actualArgs.get(i));
+            i++;
+        }
+        eval(code);
+        scopes.pop();
+        return null;
+    }
+    
 	SemanticWrapper getSemantic() {
 		return yylval;
 	}
@@ -810,18 +823,18 @@ argswrapper 	: args                      {$$ = $1;}
 				| /* empty */               {$$ = new SemanticWrapper(null);}
 				;
 declaration : TYPE ID '=' expr              {declare(((StringType)($1.val)).getValue(),((StringType)($2.val)).getValue(),$4.val);}
-            | TYPE ID '=' '[' listofexpr ']'    {declareList(((StringType)($1.val)).getValue(),((StringType)($2.val)).getValue(),$5.val);}
+            | TYPE ID '=' '[' listofexpr ']'    {declareList(((StringType)($1.val)).getValue(),((StringType)($2.val)).getValue(),$5.val); setReturn(new SemanticWrapper(lookup(((StringType)($2.val)).getValue())));}
 			| TYPE ID                       {declare(((StringType)($1.val)).getValue(),((StringType)($2.val)).getValue(),null);}
 			;
 assignment	: ID '=' expr                   {modify(((StringType)($1.val)).getValue(), $3.val); setReturn($3); }
-			| ID '=' '[' listofexpr ']'		    {declareList(((StringType)($1.val)).getValue(),((StringType)($2.val)).getValue(),$5.val);}
-			;
+			| ID '=' '[' listofexpr ']'		    {declareList(((StringType)($1.val)).getValue(),((StringType)($2.val)).getValue(),$5.val); }
+			;                                   /* TODO: FIX ABOVE */
 listofexpr: expr ',' listofexpr				{((ArrayList<Object>)$$.val).add(0,$1.val);}
 			| expr					{$$ = new SemanticWrapper(new ArrayList<Object>()); ((ArrayList<Object>)($$.val)).add($1.val);}
 			;
 /* get rid of the char strings */
 expr		: ID '.' ID '(' argswrapper ')' {$$ = new SemanticWrapper(invoke(((StringType)($1.val)).getValue(), ((StringType)($3.val)).getValue(), ( $5.val==null ? null : (ArrayList<Object>)($5.val) )));}
-			| ID '(' argswrapper ')'
+			| ID '(' argswrapper ')'        {$$ = new SemanticWrapper(invoke(((StringType)($1.val)).getValue(), ( $3.val==null ? null : (ArrayList<Object>)($3.val) ))); }
 			| valexpr                       {$$.val = $1.val;}
 			;
 /* TODO: unary negation operator */
@@ -916,13 +929,48 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup(((StringType)($
     }
     
   }
+  /**
+  * This invokes a user defined function
+  */
+  private Object invoke(String name, ArrayList<Object> args) {
   
+    if (args==null) args = new ArrayList<Object>();
+  
+    //All functions are global-scoped, meaning they're at the bottom of the stack
+    Function f = null;
+    try {
+        f = (Function)scopes.get(0).get(name);
+    } catch (Exception e) {
+        System.out.println("Cannot find function: " + name + " - did you define it?");
+        System.exit(1);
+    }
+    
+    if (f==null) {
+        System.out.println("Cannot find function: " + name + " - did you define it?");
+        System.exit(1);
+    }
+    
+    if (f.args.size()==1 && f.args.get(0).toString().length()==0) f.args = new ArrayList<String>();
+    
+    if (f.args.size()!=args.size()) {
+        System.out.println("Function " + name + " expected " + f.args.size() + " arguments, not " + args.size());
+        System.exit(1);
+    }
+    
+    
+    return lexer.evalFunction(f.code, f.args, args);
+  }
+  
+  /**
+  * This invokes a built-in function in GPL
+  */
   private Object invoke(String name, String method, ArrayList<Object> args) {
+  
+    MethodHelper helper = new MethodHelper();
   
     Object obj = lookup(name);
     String typeName = obj.getClass().toString();
     
-    MethodHelper helper = new MethodHelper();
     
     Object[] actualArgs = null;
     
@@ -978,10 +1026,20 @@ symbol		: ID                    {$$ = new SemanticWrapper(lookup(((StringType)($
     if (interactive) {
         returnVal = toReturn;
     }
+    
+    scopes.peek();
   }
   
   public void setPreprocessor(Preprocessor p) {
+    
     this.p = p;
+    
+    for (FunctionDef ff : p.functions) {
+        Function f = new Function(ff.name, ff.code, ff.paramsType);
+        f.args = ff.args;
+        scopes.peek().put(f.name, f);
+    }
+    
   }
   
   private int compare(SemanticWrapper a, SemanticWrapper b) {

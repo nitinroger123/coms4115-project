@@ -1,4 +1,4 @@
-// Output created by jacc on Tue May 10 01:26:16 EDT 2011
+// Output created by jacc on Tue May 10 03:44:31 EDT 2011
 
 package parser;
 
@@ -676,6 +676,19 @@ package parser;
         return GPLHelper.isTrue(((NumberType)(liner.getReturn().val)).getDouble());
     }
     
+    public Object evalFunction(String code, ArrayList<String> formalArgs, ArrayList<Object> actualArgs) {
+        scopes.push(new HashMap<String, Object>());
+        
+        int i = 0;
+        for (String a : formalArgs) {
+            scopes.peek().put(a, actualArgs.get(i));
+            i++;
+        }
+        eval(code);
+        scopes.pop();
+        return null;
+    }
+    
         SemanticWrapper getSemantic() {
                 return yylval;
         }
@@ -693,8 +706,6 @@ package parser;
             
             
             while ((line = scanner.nextLine())!=null) {
-                System.out.println(line);
-                
                 GPLLexer  lexer  = new GPLLexer();
                 if (scopes==null) {
                     scopes = lexer.getScopes();
@@ -4259,7 +4270,7 @@ class GPLParser implements GPLTokens {
     }
 
     private int yyr36() { // assignment : ID '=' '[' listofexpr ']'
-        {declareList(((StringType)(yysv[yysp-5].val)).getValue(),((StringType)(yysv[yysp-4].val)).getValue(),yysv[yysp-1].val);}
+        {declareList(((StringType)(yysv[yysp-5].val)).getValue(),((StringType)(yysv[yysp-4].val)).getValue(),yysv[yysp-1].val); }
         yysv[yysp-=5] = yyrv;
         return 2;
     }
@@ -4292,7 +4303,7 @@ class GPLParser implements GPLTokens {
     }
 
     private int yyr33() { // declaration : TYPE ID '=' '[' listofexpr ']'
-        {declareList(((StringType)(yysv[yysp-6].val)).getValue(),((StringType)(yysv[yysp-5].val)).getValue(),yysv[yysp-2].val);}
+        {declareList(((StringType)(yysv[yysp-6].val)).getValue(),((StringType)(yysv[yysp-5].val)).getValue(),yysv[yysp-2].val); setReturn(new SemanticWrapper(lookup(((StringType)(yysv[yysp-5].val)).getValue())));}
         yysv[yysp-=6] = yyrv;
         return 4;
     }
@@ -4362,7 +4373,8 @@ class GPLParser implements GPLTokens {
     }
 
     private int yyr40() { // expr : ID '(' argswrapper ')'
-        yysp -= 4;
+        {yyrv = new SemanticWrapper(invoke(((StringType)(yysv[yysp-4].val)).getValue(), ( yysv[yysp-2].val==null ? null : (ArrayList<Object>)(yysv[yysp-2].val) ))); }
+        yysv[yysp-=4] = yyrv;
         return yypexpr();
     }
 
@@ -4693,13 +4705,48 @@ class GPLParser implements GPLTokens {
     }
     
   }
+  /**
+  * This invokes a user defined function
+  */
+  private Object invoke(String name, ArrayList<Object> args) {
   
+    if (args==null) args = new ArrayList<Object>();
+  
+    //All functions are global-scoped, meaning they're at the bottom of the stack
+    Function f = null;
+    try {
+        f = (Function)scopes.get(0).get(name);
+    } catch (Exception e) {
+        System.out.println("Cannot find function: " + name + " - did you define it?");
+        System.exit(1);
+    }
+    
+    if (f==null) {
+        System.out.println("Cannot find function: " + name + " - did you define it?");
+        System.exit(1);
+    }
+    
+    if (f.args.size()==1 && f.args.get(0).toString().length()==0) f.args = new ArrayList<String>();
+    
+    if (f.args.size()!=args.size()) {
+        System.out.println("Function " + name + " expected " + f.args.size() + " arguments, not " + args.size());
+        System.exit(1);
+    }
+    
+    
+    return lexer.evalFunction(f.code, f.args, args);
+  }
+  
+  /**
+  * This invokes a built-in function in GPL
+  */
   private Object invoke(String name, String method, ArrayList<Object> args) {
+  
+    MethodHelper helper = new MethodHelper();
   
     Object obj = lookup(name);
     String typeName = obj.getClass().toString();
     
-    MethodHelper helper = new MethodHelper();
     
     Object[] actualArgs = null;
     
@@ -4755,10 +4802,20 @@ class GPLParser implements GPLTokens {
     if (interactive) {
         returnVal = toReturn;
     }
+    
+    scopes.peek();
   }
   
   public void setPreprocessor(Preprocessor p) {
+    
     this.p = p;
+    
+    for (FunctionDef ff : p.functions) {
+        Function f = new Function(ff.name, ff.code, ff.paramsType);
+        f.args = ff.args;
+        scopes.peek().put(f.name, f);
+    }
+    
   }
   
   private int compare(SemanticWrapper a, SemanticWrapper b) {
