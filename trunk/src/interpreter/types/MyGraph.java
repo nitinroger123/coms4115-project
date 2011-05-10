@@ -201,8 +201,8 @@ public class MyGraph implements Type{
         return bfsGraph;
     }
 
-    public MyGraph bfs(NumberType startNode, NumberType goalNode) {
-        return bfs(nodes.get(startNode.getInt()), nodes.get(goalNode.getInt()));
+    public MyGraph bfsBetweenNodes(NumberType startNode, NumberType goalNode) {
+        return bfsBetweenNodes2(nodes.get(startNode.getInt()), nodes.get(goalNode.getInt()));
     }
     
     /**
@@ -211,7 +211,7 @@ public class MyGraph implements Type{
      * @param start
      * @return
      */
-    public MyGraph bfs(Node start, Node goal) {
+    public MyGraph bfsBetweenNodes2(Node start, Node goal) {
         MyGraph bfsGraph = new MyGraph();
         ArrayList<Node> queue = new ArrayList<Node>();
         HashMap<Double, Boolean> seen = new HashMap<Double, Boolean>();
@@ -578,20 +578,6 @@ public class MyGraph implements Type{
      */
     public void visualize(){
         DisplayGraph g = new DisplayGraph(this);
-        g.setVisible(true);
-    }
-
-    /**
-     * Visualizes the graph with the specified edges
-     * @param specificEdges
-     */
-    public void visualize(ArrayList<Edge> specificEdges){
-        MyGraph temp = new MyGraph(this);
-        while(temp.edges.size() != 0){
-            temp.removeEdge(temp.edges.get(temp.getNumberOfEdges()-1));
-        }
-        temp.addAllEdges(specificEdges);
-        DisplayGraph g = new DisplayGraph(temp);
         g.setVisible(true);
     }
 

@@ -113,8 +113,8 @@ public class MyGraphTest {
         testGraph.addEdge2(e);
         e = new Edge(n5, n4, new NumberType(1.0));
         testGraph.addEdge2(e);
-        testGraph.bfs(n1 , n4).printNodes();
-        assertEquals(3,testGraph.bfs(n1 , n4).getNumberOfEdges());
+        testGraph.bfsBetweenNodes2(n1 , n4).printNodes();
+        assertEquals(3,testGraph.bfsBetweenNodes2(n1 , n4).getNumberOfEdges());
         assertEquals(4,testGraph.bfs2(n1).getNumberOfEdges());
     }
 
