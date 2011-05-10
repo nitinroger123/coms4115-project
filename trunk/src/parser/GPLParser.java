@@ -1,4 +1,4 @@
-// Output created by jacc on Tue May 10 00:05:41 EDT 2011
+// Output created by jacc on Tue May 10 01:26:16 EDT 2011
 
 package parser;
 
@@ -56,6 +56,14 @@ package parser;
     public GPLLexer() throws IOException{
         scopes.push(new HashMap<String, Object>());
         inputs.push(new InputStreamReader(System.in));
+    }
+    
+    public void addInput(Reader reader) {
+        inputs.push(reader);
+    }
+    
+    public void setScopes(Stack<HashMap<String, Object>> scopes) {
+        this.scopes = scopes;
     }
     
     public Stack<HashMap<String, Object>> getScopes() {
@@ -354,7 +362,6 @@ package parser;
                     return nextToken();
                 }
             } else if (s.equals("Number")||s.equals("Graph")||s.equals("String")||s.equals("Function")) {
-                System.out.println("Number detected!");
                 if (toSkip.size()==0 || !toSkip.peek()) {
                     yylval = new SemanticWrapper(new StringType(s));
                     return token=TYPE;
@@ -530,7 +537,7 @@ package parser;
                     return nextToken();
                 }
             } else if (s.equals("last")) {
-                if (toSkip.size()==0 || !toSkip.peek()) {
+                if (!toSkip.peek()) {
                     scopes.pop();
                     return token=LAST;
                 } else {
@@ -676,16 +683,63 @@ package parser;
 
   class Main {
     public static void main(String[] args) throws Exception {
-      //String file = args[0];
-      //Preprocessor p = new Preprocessor(file);
-      GPLLexer  lexer  = new GPLLexer();
-      lexer.nextToken();
-      GPLParser parser = new GPLParser(lexer);
-      //parser.setPreprocessor(p);
-      parser.parse();
+      if (args.length==0) {
+          System.out.println("Welcome to GPL, enter commands to run:");
+            System.out.print("> ");
+            Scanner scanner = new Scanner(System.in);
+            String line;
+            
+            Stack<HashMap<String, Object>> scopes = null;
+            
+            
+            while ((line = scanner.nextLine())!=null) {
+                System.out.println(line);
+                
+                GPLLexer  lexer  = new GPLLexer();
+                if (scopes==null) {
+                    scopes = lexer.getScopes();
+                } else {
+                    lexer.setScopes(scopes);
+                }
+                
+                GPLParser liner = new GPLParser(lexer);
+                long start = System.currentTimeMillis();
+                lexer.addInput(new StringReader("\n"+replace(line)));
+                lexer.nextToken();
+                liner.setInteractive(true);
+                liner.parse();
+                
+                if (liner.getReturn()!=null) {
+                    System.out.println(((Type)(liner.getReturn().val)).getValue());
+                }
+                System.out.println("Successfully executed in " + ((System.currentTimeMillis() - start)/1000.0) + " seconds");
+                
+                System.out.print("> ");
+            }
+            scanner.close();
+
+      } else {
+          String file = args[0];
+          Preprocessor p = new Preprocessor(file);
+          GPLLexer  lexer  = new GPLLexer();
+          lexer.nextToken();
+          GPLParser parser = new GPLParser(lexer);
+          parser.setPreprocessor(p);
+          parser.parse();
+      }
     }
 
-    static void error(String msg) {
+    private static String replace(String s) {
+        s = s.replace("==", "~");
+        s = s.replace("!=", "`");
+        s = s.replace(">=", "@");
+                s = s.replace("<=", "$");
+                s = s.replace("&&", "&");
+                s = s.replace("||", "|");
+        return s;
+    }
+    
+    public static void error(String msg) {
       System.out.println("ERROR: " + msg);
       System.exit(1);
     }
@@ -4440,13 +4494,13 @@ class GPLParser implements GPLTokens {
     }
 
     private int yyr59() { // symbol : NUMBER
-        {yyrv = yysv[yysp-1]; setReturn(yyrv); }
+        {yyrv = yysv[yysp-1]; setReturn(yyrv); setReturn(yyrv);}
         yysv[yysp-=1] = yyrv;
         return 8;
     }
 
     private int yyr60() { // symbol : STRING_LITERAL
-        {yyrv = yysv[yysp-1]; setReturn(yysv[yysp-1]);}
+        {yyrv = yysv[yysp-1]; setReturn(yysv[yysp-1]); setReturn(yyrv);}
         yysv[yysp-=1] = yyrv;
         return 8;
     }
@@ -4488,13 +4542,16 @@ class GPLParser implements GPLTokens {
     }
 
     private int yyr48() { // valexpr : valexpr '|' valexpr
-        {yyrv = new SemanticWrapper((GPLHelper.isTrue(((NumberType)(yysv[yysp-3].val)).getDouble()) ? TRUE : (GPLHelper.isTrue(((NumberType)(yysv[yysp-1].val)).getDouble()) ? TRUE : FALSE))); setReturn(yyrv); }
+        {yyrv = (GPLHelper.isTrue(((NumberType)(yysv[yysp-3].val)).getDouble()) ? TRUE_WRAPPER : (GPLHelper.isTrue(((NumberType)(yysv[yysp-1].val)).getDouble()) ? TRUE_WRAPPER : FALSE_WRAPPER)); setReturn(yyrv); }
         yysv[yysp-=3] = yyrv;
         return yypvalexpr();
     }
 
     private int yyr49() { // valexpr : valexpr '&' valexpr
-        {yyrv = new SemanticWrapper((GPLHelper.isTrue(((NumberType)(yysv[yysp-3].val)).getDouble()) ? (GPLHelper.isTrue(((NumberType)(yysv[yysp-1].val)).getDouble()) ? TRUE : FALSE) : FALSE)); setReturn(yyrv); }
+        {yyrv = ( GPLHelper.isTrue(((NumberType)(yysv[yysp-3].val)).getDouble()) ? 
+                                                                        (GPLHelper.isTrue(((NumberType)(yysv[yysp-1].val)).getDouble()) ? TRUE_WRAPPER : FALSE_WRAPPER) : 
+                                                                        FALSE_WRAPPER); 
+                                             setReturn(yyrv); }
         yysv[yysp-=3] = yyrv;
         return yypvalexpr();
     }
@@ -4572,8 +4629,6 @@ class GPLParser implements GPLTokens {
     };
 
   private GPLLexer lexer;
-  private final Double TRUE = new Double(1);
-  private final Double FALSE = new Double(0);
   
   private HashMap<String, Object> symbolTable = new HashMap<String, Object>();
   private Stack<HashMap<String, Object>> scopes;
@@ -4677,8 +4732,6 @@ class GPLParser implements GPLTokens {
   }
   
   private void declare(String type, String name, Object val) {
-    System.out.println("declaring");
-  
     if (type.equals("Number")) {
         scopes.peek().put(name, (val==null ? new NumberType() : (NumberType)val));
     } else if (type.equals("Graph")) {
