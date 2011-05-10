@@ -79,6 +79,18 @@ public class MyGraph implements Type{
     }
 
     /**
+     * Adds a node to the graph
+     * @param n
+     */
+    public void addNode(Type value){
+        Node n = new Node(value);
+        n.index = index;
+        nodes.add(n);
+        this.numberOfNodes ++;
+        index ++;
+    }
+    
+    /**
      * Adds the list of nodes to this graph.
      * @param nodes
      */
@@ -87,6 +99,18 @@ public class MyGraph implements Type{
         numberOfNodes += nodes.size();
     }
 
+    /**
+     * Adds a new edge to the Graph.
+     * @param e
+     */
+    public void addEdge(Type t1, Type t2, NumberType t3){
+        Edge e = new Edge(new Node(t1), new Node(t2), t3);
+        edges.add(e);
+        e.getFirstNode().addAdjacentNode(e.getSecondNode());
+        e.getSecondNode().addAdjacentNode(e.getFirstNode());
+        this.numberOfEdges ++;
+    }
+    
     /**
      * Adds a new edge to the Graph.
      * @param e
@@ -232,7 +256,7 @@ public class MyGraph implements Type{
      * Returns the miniumum spanning tree; Uses Kruskal's algo.
      * @return
      */
-    public MyGraph minimumSpanningTree(){
+    public ArrayList<Edge> minimumSpanningTree(){
         // initialize a priority queue for the MST
         PriorityQueue<Edge> queue = new PriorityQueue<Edge>(); 
         queue.addAll(edges); 
@@ -261,10 +285,7 @@ public class MyGraph implements Type{
             System.out.println(e.node1.toString() + " " + e.node2.id.toString() + " " + e.cost); 
         }
         System.out.println("mst!");
-        MyGraph mst = new MyGraph();
-        mst.nodes = this.nodes;
-        mst.edges = edgesMST;
-        return mst;
+        return edgesMST;
     }
 
     /**
