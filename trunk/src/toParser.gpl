@@ -1,0 +1,33 @@
+
+
+
+Number a = 3
+
+Graph g = [1, 2, 3]
+
+print(g.printNodes())
+
+print("hi")
+
+while (a$6)
+    a=a+1
+    print(a^2)
+    
+    
+    if (a%2 ~ 1)
+    
+        print("a is odd!")
+        
+    else
+    
+        print("a is even!")
+        
+    end
+end
+
+print(a)
+
+sayHello(4, 1000000)
+
+exit
+
