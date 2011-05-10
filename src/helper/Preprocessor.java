@@ -150,7 +150,7 @@ public class Preprocessor {
 			}
 			//String literal found and hence don't replace
 			if(foundEndQuote && foundStartQuote){
-				writer.write(s+"\n");
+				writer.write(s+(char)13+"\n");
 				continue;
 			}
 			//Not inside a string literal
@@ -161,10 +161,10 @@ public class Preprocessor {
 				temp = s.replace("!=", "`");
 			}
 			if(s.contains("<=")){
-				temp = s.replace("<=", "@");
+				temp = s.replace(">=", "@");
 			}
 			if(s.contains(">=")){
-				temp = s.replace(">=", "$");
+				temp = s.replace("<=", "$");
 			}
 			if(s.contains("&&")){
 				temp = s.replace("&&", "&");
@@ -172,7 +172,7 @@ public class Preprocessor {
 			if(s.contains("||")){
 				temp = s.replace("||", "|");
 			}
-			writer.write(temp+"\n");
+			writer.write(temp+(char)13+"\n");
 		}
 		writer.close();
 	}
@@ -183,17 +183,8 @@ public class Preprocessor {
 	 * @throws IOException
 	 */
 	public static void main(String args[]) throws IOException{
-		Preprocessor p = new Preprocessor("preprocess");
-		System.out.println(p.functions.get(0).name);
-		System.out.println(p.functions.get(0).paramsType.get(0));
-		System.out.println(p.functions.get(0).paramsType.get(1));
-		System.out.println(p.functions.get(0).paramsType.get(2));
-		System.out.println(p.functions.get(0).code);
-		System.out.println("*****************");
-		System.out.println(p.functions.get(1).name);
-		System.out.println(p.functions.get(1).paramsType.get(0));
-		System.out.println(p.functions.get(0).code);
-		//p.removeCommentsAndReplaceCharacters();
+		Preprocessor p = new Preprocessor(args[0]);
+		
 	}
 
 }
